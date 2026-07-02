@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe, planFromStripePrice } from "@/lib/stripe";
+import { applyCheckoutSessionToUser } from "@/lib/stripe-plan-sync";
 import type { PlanId } from "@/lib/plans";
 
 export async function POST(request: Request) {
@@ -34,25 +35,11 @@ export async function POST(request: Request) {
           client_reference_id?: string;
           customer?: string;
           subscription?: string;
+          payment_status?: string;
+          status?: string;
         };
 
-        const userId = session.metadata?.userId || session.client_reference_id;
-        const planId = session.metadata?.planId as PlanId | undefined;
-
-        if (userId && planId && (planId === "pro" || planId === "ultra")) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              plan: planId,
-              stripeCustomerId:
-                typeof session.customer === "string" ? session.customer : undefined,
-              stripeSubscriptionId:
-                typeof session.subscription === "string"
-                  ? session.subscription
-                  : undefined,
-            },
-          });
-        }
+        await applyCheckoutSessionToUser(session);
         break;
       }
 

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/dashboard?checkout=success&plan=${planId}`,
+      success_url: `${appUrl}/dashboard?checkout=success&plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing?checkout=canceled`,
       customer_email: user.email,
       client_reference_id: user.id,

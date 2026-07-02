@@ -97,8 +97,12 @@ export function PromptHero() {
       return;
     }
 
-    // Plan gating: Free allows a single startup.
-    if (plan.maxStartups !== Infinity && projectCount >= plan.maxStartups) {
+    // Plan gating uses server-synced limits when available.
+    const atProjectLimit =
+      user.canCreateMore === false ||
+      (plan.maxStartups !== Infinity && projectCount >= plan.maxStartups);
+
+    if (atProjectLimit) {
       setShowUpgrade(true);
       return;
     }

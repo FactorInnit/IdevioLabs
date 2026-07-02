@@ -39,8 +39,8 @@ export default function DashboardPage() {
 function DashboardContent() {
   const router = useRouter();
   const params = useSearchParams();
-  const { user, refresh } = useAuth();
-  const { plan } = usePlan();
+  const { user, refresh, syncCheckoutSession } = useAuth();
+  const { plan, planId } = usePlan();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -54,12 +54,19 @@ function DashboardContent() {
           ? `Payment successful! Your ${planName.toUpperCase()} plan is now active.`
           : "Payment successful! Your plan is now active."
       );
-      refresh();
+
+      const sessionId = params.get("session_id");
+      (async () => {
+        if (sessionId) {
+          await syncCheckoutSession(sessionId);
+        }
+        await refresh();
+      })();
     }
     if (params.get("signed_in") === "1") {
       refresh();
     }
-  }, [params, refresh]);
+  }, [params, refresh, syncCheckoutSession]);
 
   useEffect(() => {
     fetch("/api/projects")
@@ -68,8 +75,16 @@ function DashboardContent() {
       .finally(() => setLoading(false));
   }, []);
 
+  const maxStartups =
+    user?.maxStartups ??
+    (plan.maxStartups === Infinity ? Infinity : plan.maxStartups);
+
   const atLimit =
-    plan.maxStartups !== Infinity && projects.length >= plan.maxStartups;
+    user?.canCreateMore === false ||
+    (maxStartups !== Infinity && projects.length >= maxStartups);
+
+  const showUpgradeBanner =
+    atLimit && !loading && user && planId !== "ultra";
 
   const handleNew = () => {
     if (!user) {
@@ -113,7 +128,7 @@ function DashboardContent() {
           </div>
         )}
 
-        {atLimit && !loading && user && (
+        {showUpgradeBanner && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-200 bg-navy-50 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900">
@@ -124,8 +139,9 @@ function DashboardContent() {
                   You&apos;re on the {plan.name} plan
                 </p>
                 <p className="text-xs text-slate-600">
-                  You&apos;ve used {projects.length} of {plan.maxStartups} startup
-                  {plan.maxStartups === 1 ? "" : "s"}. Upgrade to build more.
+                  You&apos;ve used {projects.length} of{" "}
+                  {maxStartups === Infinity ? "unlimited" : maxStartups} startup
+                  {maxStartups === 1 ? "" : "s"}. Upgrade to build more.
                 </p>
               </div>
             </div>
@@ -213,10 +229,21 @@ function DashboardContent() {
 
       <UpgradeModal
         open={showUpgrade}
-        title="Upgrade to build more startups"
-        description={`The ${plan.name} plan includes ${plan.maxStartups} startup${plan.maxStartups === 1 ? "" : "s"}. Choose a plan to keep building.`}
+        title={
+          planId === "pro"
+            ? "Upgrade to Ultra for unlimited startups"
+            : "Upgrade to build more startups"
+        }
+        description={
+          planId === "pro"
+            ? `You've used ${projects.length} of ${maxStartups} startups on Pro. Go Ultra for unlimited roadmaps.`
+            : `The ${plan.name} plan includes ${maxStartups === Infinity ? "unlimited" : maxStartups} startup${maxStartups === 1 ? "" : "s"}. Choose a plan to keep building.`
+        }
         onClose={() => setShowUpgrade(false)}
-        onUpgraded={() => setShowUpgrade(false)}
+        onUpgraded={() => {
+          setShowUpgrade(false);
+          refresh();
+        }}
       />
     </div>
   );

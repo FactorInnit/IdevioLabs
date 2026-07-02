@@ -1,25 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
-import { getUserProjectCount } from "@/lib/plan-limits";
-import { getPlan, type PlanId } from "@/lib/plans";
+import { getCurrentUserId } from "@/lib/auth";
+import { buildAuthUserPayload } from "@/lib/stripe-plan-sync";
 
 export async function GET() {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ user: null });
+  }
+
+  const user = await buildAuthUserPayload(userId);
   if (!user) {
     return NextResponse.json({ user: null });
   }
 
-  const projectCount = await getUserProjectCount(user.id);
-  const plan = getPlan(user.plan as PlanId);
-
-  return NextResponse.json({
-    user: {
-      ...user,
-      projectCount,
-      maxStartups: plan.maxStartups,
-      canCreateMore: projectCount < plan.maxStartups,
-    },
-  });
+  return NextResponse.json({ user });
 }
 
 /** Plan upgrades are handled by Stripe webhooks only. */

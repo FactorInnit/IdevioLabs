@@ -32,6 +32,7 @@ interface AuthContextValue {
   ) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  syncCheckoutSession: (sessionId: string) => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,6 +53,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     }
   }, []);
+
+  const syncCheckoutSession = useCallback(async (sessionId: string) => {
+    try {
+      const res = await fetch("/api/stripe/verify-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { error: data.error ?? "Failed to activate plan." };
+      }
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        await refresh();
+      }
+      return {};
+    } catch {
+      return { error: "Failed to activate plan." };
+    }
+  }, [refresh]);
 
   useEffect(() => {
     refresh().finally(() => setLoading(false));
@@ -126,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, planId, checkoutPlan, login, signup, logout, refresh }}
+      value={{ user, loading, planId, checkoutPlan, login, signup, logout, refresh, syncCheckoutSession }}
     >
       {children}
     </AuthContext.Provider>
