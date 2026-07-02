@@ -122,7 +122,7 @@ export function AppHeader() {
                 Sign in
               </Link>
               <Link
-                href="/login?mode=signup"
+                href="/signup"
                 className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition hover:bg-white/90"
               >
                 Sign up

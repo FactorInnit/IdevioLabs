@@ -1,4 +1,4 @@
-export const COMPANY_NAME = "Idevio Labs";
+export const COMPANY_NAME = "Ideviolabs";
 export const PRODUCT_NAME = "Idevio";
 export const ASSISTANT_NAME = "Idevio";
 

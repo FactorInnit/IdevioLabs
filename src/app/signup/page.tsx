@@ -7,13 +7,13 @@ import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { AuthForm } from "@/components/AuthForm";
 
-function LoginContent() {
+function SignupContent() {
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
-  return <AuthForm mode="login" next={next} />;
+  return <AuthForm mode="signup" next={next} />;
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-100">
       <AppHeader />
@@ -21,7 +21,7 @@ export default function LoginPage() {
         <Suspense
           fallback={<Loader2 className="h-8 w-8 animate-spin text-navy-700" />}
         >
-          <LoginContent />
+          <SignupContent />
         </Suspense>
       </main>
       <AppFooter />

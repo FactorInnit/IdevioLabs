@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { exchangeGoogleCode, verifyState } from "@/lib/google-auth";
-import { setSessionCookie } from "@/lib/auth";
+import { attachSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getAppUrl } from "@/lib/stripe";
+import { getOAuthOrigin } from "@/lib/site";
+
+function loginError(origin: string, code: string) {
+  return NextResponse.redirect(new URL(`/login?error=${code}`, origin));
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,23 +14,21 @@ export async function GET(request: Request) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const appUrl = getAppUrl();
+  const fallbackOrigin = getOAuthOrigin(request);
 
   if (error || !code || !state) {
-    return NextResponse.redirect(
-      new URL("/login?error=google_signin_failed", appUrl)
-    );
+    return loginError(fallbackOrigin, "google_signin_failed");
   }
 
   const parsedState = verifyState(state);
   if (!parsedState) {
-    return NextResponse.redirect(
-      new URL("/login?error=invalid_state", appUrl)
-    );
+    return loginError(fallbackOrigin, "invalid_state");
   }
 
+  const origin = parsedState.origin;
+
   try {
-    const profile = await exchangeGoogleCode(code);
+    const profile = await exchangeGoogleCode(code, origin);
     const email = profile.email.toLowerCase();
 
     let user = await prisma.user.findFirst({
@@ -53,14 +55,32 @@ export async function GET(request: Request) {
       });
     }
 
-    await setSessionCookie(user.id);
+    const redirectUrl = new URL(parsedState.next, origin);
+    redirectUrl.searchParams.set("signed_in", "1");
 
-    const next = parsedState.next.startsWith("/") ? parsedState.next : "/dashboard";
-    return NextResponse.redirect(new URL(next, appUrl));
+    const response = NextResponse.redirect(redirectUrl);
+    return attachSessionCookie(response, user.id);
   } catch (err) {
-    console.error(err);
-    return NextResponse.redirect(
-      new URL("/login?error=google_signin_failed", appUrl)
-    );
+    console.error("Google OAuth callback error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+
+    if (
+      message.includes("Failed to exchange Google auth code") ||
+      message.includes("Google OAuth is not configured")
+    ) {
+      return loginError(origin, "google_token_failed");
+    }
+
+    if (
+      message.includes("SQLITE") ||
+      message.includes("libsql") ||
+      message.includes("database") ||
+      message.includes("Prisma") ||
+      message.includes("no such table")
+    ) {
+      return loginError(origin, "database_not_configured");
+    }
+
+    return loginError(origin, "google_signin_failed");
   }
 }

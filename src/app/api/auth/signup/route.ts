@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, setSessionCookie } from "@/lib/auth";
+import { hashPassword, attachSessionCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -43,13 +43,15 @@ export async function POST(request: Request) {
       data: { name, email, passwordHash: await hashPassword(password) },
     });
 
-    await setSessionCookie(user.id);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
     });
+    return attachSessionCookie(response, user.id);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Failed to create account. Check that the database is configured." },
+      { status: 500 }
+    );
   }
 }

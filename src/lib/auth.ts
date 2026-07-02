@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const SESSION_COOKIE = "launchpad_session";
@@ -48,15 +49,34 @@ export function verifySessionToken(token: string | undefined): string | null {
   return userId;
 }
 
+export function getSessionCookieOptions(userId: string) {
+  return {
+    name: SESSION_COOKIE,
+    value: createSessionToken(userId),
+    options: {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    },
+  };
+}
+
 export async function setSessionCookie(userId: string): Promise<void> {
+  const { name, value, options } = getSessionCookieOptions(userId);
   const store = await cookies();
-  store.set(SESSION_COOKIE, createSessionToken(userId), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  store.set(name, value, options);
+}
+
+/** Attach session to a Route Handler response (required for OAuth redirects). */
+export function attachSessionCookie(
+  response: NextResponse,
+  userId: string
+): NextResponse {
+  const { name, value, options } = getSessionCookieOptions(userId);
+  response.cookies.set(name, value, options);
+  return response;
 }
 
 export async function clearSessionCookie(): Promise<void> {

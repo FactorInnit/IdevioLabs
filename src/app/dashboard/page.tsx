@@ -56,6 +56,9 @@ function DashboardContent() {
       );
       refresh();
     }
+    if (params.get("signed_in") === "1") {
+      refresh();
+    }
   }, [params, refresh]);
 
   useEffect(() => {
