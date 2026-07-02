@@ -2,18 +2,22 @@
 
 :root {
   --navy-950: #040810;
-  --navy-900: #0a1628;
-  --navy-800: #0f2444;
-  --navy-700: #1a365d;
-  --navy-600: #2d4a7a;
-  --navy-500: #3b5998;
-  --navy-400: #5a7ab8;
+  --navy-900: #081a3a;
+  --navy-800: #0c2347;
+  --navy-700: #12325c;
+  --navy-600: #1a4478;
+  --navy-500: #2a5894;
+  --navy-400: #4a78b4;
+  --graphite: #8b95a8;
   --surface: #ffffff;
-  --surface-muted: #f4f6f9;
-  --foreground: #0a1628;
+  --surface-muted: #f6f8fb;
+  --foreground: #081a3a;
   --muted: #64748b;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border: rgba(8, 26, 58, 0.08);
+  --border-strong: rgba(8, 26, 58, 0.14);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glow: rgba(74, 120, 180, 0.35);
 }
 
 @theme inline {
@@ -220,12 +224,114 @@ body {
   .float-card-main,
   .float-card-side,
   .float-orb,
-  .cta-orb {
+  .cta-orb,
+  .founder-float,
+  .founder-glow-pulse,
+  .founder-shimmer {
     animation: none;
   }
 
   .card-3d-lift:hover,
-  .step-card-3d:hover {
+  .step-card-3d:hover,
+  .glass-card:hover {
     transform: none;
   }
+}
+
+/* ── Founder OS design system ── */
+
+.founder-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74, 120, 180, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(8, 26, 58, 0.06), transparent),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 1px 2px rgba(8, 26, 58, 0.04),
+    0 8px 32px rgba(8, 26, 58, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(8, 26, 58, 0.06),
+    0 16px 48px rgba(8, 26, 58, 0.1),
+    0 0 0 1px rgba(74, 120, 180, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.glass-card-dark {
+  background: rgba(8, 26, 58, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 64px rgba(4, 8, 16, 0.35);
+}
+
+.founder-float {
+  animation: founder-float 5s ease-in-out infinite;
+}
+
+@keyframes founder-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.founder-glow-pulse {
+  animation: founder-glow 3s ease-in-out infinite;
+}
+
+@keyframes founder-glow {
+  0%, 100% { box-shadow: 0 0 24px rgba(74, 120, 180, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(74, 120, 180, 0.35); }
+}
+
+.founder-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: founder-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes founder-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.gauge-ring {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.flow-line {
+  stroke-dasharray: 8 6;
+  animation: flow-dash 1.2s linear infinite;
+}
+
+@keyframes flow-dash {
+  to { stroke-dashoffset: -28; }
+}
+
+.founder-grid {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(8, 26, 58, 0.06) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.sidebar-item-active {
+  background: linear-gradient(90deg, rgba(74, 120, 180, 0.15), transparent);
+  border-left: 2px solid var(--navy-500);
 }

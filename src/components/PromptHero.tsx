@@ -134,7 +134,7 @@ export function PromptHero() {
       }
 
       const project = await res.json();
-      router.push(`/project/${project.id}`);
+      router.push(`/company/${project.id}?module=workspace`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate roadmap.");
     } finally {

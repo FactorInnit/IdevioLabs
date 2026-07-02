@@ -49,7 +49,7 @@ export function AppHeader() {
             href="/dashboard"
             className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
           >
-            My startups
+            Command Center
           </Link>
 
           {loading ? (

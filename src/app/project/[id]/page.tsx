@@ -1,4 +1,4 @@
-import { ProjectWorkspace } from "@/components/ProjectWorkspace";
+import { redirect } from "next/navigation";
 
 export default async function ProjectPage({
   params,
@@ -6,5 +6,5 @@ export default async function ProjectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ProjectWorkspace projectId={id} />;
+  redirect(`/company/${id}?module=workspace`);
 }
