@@ -3,7 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { getStripe } from "@/lib/stripe";
 import {
   applyCheckoutSessionToUser,
+  buildAuthUserPayload,
   isCheckoutSessionPaid,
+  toCheckoutSessionPayload,
 } from "@/lib/stripe-plan-sync";
 
 export async function POST(request: Request) {
@@ -32,18 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Session does not belong to this user." }, { status: 403 });
     }
 
-    const checkoutSession = {
-      metadata: session.metadata,
-      client_reference_id: session.client_reference_id,
-      customer:
-        typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
-      subscription:
-        typeof session.subscription === "string"
-          ? session.subscription
-          : session.subscription?.id ?? null,
-      payment_status: session.payment_status,
-      status: session.status,
-    };
+    const checkoutSession = toCheckoutSessionPayload(session);
 
     if (!isCheckoutSessionPaid(checkoutSession)) {
       return NextResponse.json({ pending: true, user: { ...user, plan: user.plan } });

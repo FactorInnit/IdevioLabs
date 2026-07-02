@@ -47,6 +47,10 @@ function DashboardContent() {
   const [checkoutMessage, setCheckoutMessage] = useState("");
 
   useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
     if (params.get("checkout") === "success") {
       const planName = params.get("plan");
       setCheckoutMessage(
@@ -84,7 +88,7 @@ function DashboardContent() {
     (maxStartups !== Infinity && projects.length >= maxStartups);
 
   const showUpgradeBanner =
-    atLimit && !loading && user && planId !== "ultra";
+    atLimit && !loading && user && planId === "free";
 
   const handleNew = () => {
     if (!user) {

@@ -13,24 +13,69 @@ type CheckoutSession = {
   status?: string | null;
 };
 
-export async function applyCheckoutSessionToUser(session: CheckoutSession) {
-  const userId = session.metadata?.userId || session.client_reference_id;
-  const planId = session.metadata?.planId as PlanId | undefined;
+function isValidPlanId(value: string | undefined | null): value is PlanId {
+  return value === "pro" || value === "ultra";
+}
 
-  if (!userId || !planId || (planId !== "pro" && planId !== "ultra")) {
-    return null;
-  }
+function resolvePlanIdFromPriceAmount(unitAmount: number | null | undefined): PlanId | null {
+  if (unitAmount === 1999) return "pro";
+  if (unitAmount === 2999) return "ultra";
+  return null;
+}
 
-  const user = await prisma.user.update({
+function resolvePlanIdFromMetadata(
+  metadata: { planId?: string; userId?: string } | null | undefined
+): PlanId | null {
+  const planId = metadata?.planId;
+  return isValidPlanId(planId) ? planId : null;
+}
+
+function resolvePlanIdFromSubscription(subscription: {
+  metadata?: { planId?: string } | null;
+  items: { data: { price: { id: string; unit_amount: number | null } }[] };
+}): PlanId | null {
+  const fromMetadata = resolvePlanIdFromMetadata(subscription.metadata);
+  if (fromMetadata) return fromMetadata;
+
+  const price = subscription.items.data[0]?.price;
+  if (!price) return null;
+
+  const fromEnv = planFromStripePrice(price.id);
+  if (fromEnv) return fromEnv;
+
+  return resolvePlanIdFromPriceAmount(price.unit_amount);
+}
+
+async function updateUserPlan(
+  userId: string,
+  planId: PlanId,
+  stripeCustomerId?: string | null,
+  stripeSubscriptionId?: string | null
+) {
+  return prisma.user.update({
     where: { id: userId },
     data: {
       plan: planId,
-      stripeCustomerId:
-        typeof session.customer === "string" ? session.customer : undefined,
-      stripeSubscriptionId:
-        typeof session.subscription === "string" ? session.subscription : undefined,
+      stripeCustomerId: stripeCustomerId ?? undefined,
+      stripeSubscriptionId: stripeSubscriptionId ?? undefined,
     },
   });
+}
+
+export async function applyCheckoutSessionToUser(session: CheckoutSession) {
+  const userId = session.metadata?.userId || session.client_reference_id;
+  const planId = resolvePlanIdFromMetadata(session.metadata);
+
+  if (!userId || !planId) {
+    return null;
+  }
+
+  const user = await updateUserPlan(
+    userId,
+    planId,
+    typeof session.customer === "string" ? session.customer : null,
+    typeof session.subscription === "string" ? session.subscription : null
+  );
 
   const projectCount = await getUserProjectCount(user.id);
   const plan = getPlan(planId);
@@ -48,6 +93,22 @@ export async function applyCheckoutSessionToUser(session: CheckoutSession) {
 
 export function isCheckoutSessionPaid(session: CheckoutSession): boolean {
   return session.payment_status === "paid" || session.status === "complete";
+}
+
+async function findPaidCheckoutSessionForUser(userId: string, email: string) {
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  const recent = await stripe.checkout.sessions.list({ limit: 100 });
+  return (
+    recent.data.find(
+      (session) =>
+        session.payment_status === "paid" &&
+        (session.metadata?.userId === userId ||
+          session.client_reference_id === userId ||
+          session.customer_email?.toLowerCase() === email.toLowerCase())
+    ) ?? null
+  );
 }
 
 /** Reconcile plan from Stripe when webhook was delayed or missed. */
@@ -74,32 +135,56 @@ export async function syncUserPlanFromStripe(userId: string) {
   if (!subscriptionId && customerId) {
     const subs = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 10,
     });
-    subscriptionId = subs.data[0]?.id ?? null;
+    const active = subs.data.find((sub) =>
+      ["active", "trialing", "past_due"].includes(sub.status)
+    );
+    subscriptionId = active?.id ?? null;
   }
 
-  if (!subscriptionId) return user;
+  if (subscriptionId) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    if (["active", "trialing", "past_due"].includes(subscription.status)) {
+      const planId = resolvePlanIdFromSubscription(subscription);
+      const resolvedCustomerId =
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : customerId ?? user.stripeCustomerId;
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  if (subscription.status === "active" || subscription.status === "trialing") {
-    const priceId = subscription.items.data[0]?.price.id;
-    const planId = priceId ? planFromStripePrice(priceId) : null;
-    const resolvedCustomerId =
-      typeof subscription.customer === "string"
-        ? subscription.customer
-        : customerId ?? user.stripeCustomerId;
+      if (planId) {
+        user = await updateUserPlan(
+          userId,
+          planId,
+          resolvedCustomerId,
+          subscription.id
+        );
+        return user;
+      }
+    }
+  }
 
-    if (planId) {
-      user = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          plan: planId,
-          stripeSubscriptionId: subscription.id,
-          stripeCustomerId: resolvedCustomerId ?? undefined,
-        },
-      });
+  const checkoutSession = await findPaidCheckoutSessionForUser(userId, user.email);
+  if (checkoutSession) {
+    const checkoutPayload = {
+      metadata: checkoutSession.metadata,
+      client_reference_id: checkoutSession.client_reference_id,
+      customer:
+        typeof checkoutSession.customer === "string"
+          ? checkoutSession.customer
+          : checkoutSession.customer?.id ?? null,
+      subscription:
+        typeof checkoutSession.subscription === "string"
+          ? checkoutSession.subscription
+          : checkoutSession.subscription?.id ?? null,
+      payment_status: checkoutSession.payment_status,
+      status: checkoutSession.status,
+    };
+
+    const applied = await applyCheckoutSessionToUser(checkoutPayload);
+    if (applied) {
+      user = await prisma.user.findUnique({ where: { id: userId } });
     }
   }
 
@@ -122,5 +207,29 @@ export async function buildAuthUserPayload(userId: string) {
     projectCount,
     maxStartups: plan.maxStartups,
     canCreateMore: projectCount < plan.maxStartups,
+  };
+}
+
+export function toCheckoutSessionPayload(session: {
+  metadata?: { userId?: string; planId?: string } | null;
+  client_reference_id?: string | null;
+  customer?: string | { id: string } | null;
+  subscription?: string | { id: string } | null;
+  payment_status?: string | null;
+  status?: string | null;
+}): CheckoutSession {
+  return {
+    metadata: session.metadata,
+    client_reference_id: session.client_reference_id,
+    customer:
+      typeof session.customer === "string"
+        ? session.customer
+        : session.customer?.id ?? null,
+    subscription:
+      typeof session.subscription === "string"
+        ? session.subscription
+        : session.subscription?.id ?? null,
+    payment_status: session.payment_status,
+    status: session.status,
   };
 }
