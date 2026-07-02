@@ -32,34 +32,34 @@ import { ASSISTANT_NAME, PRODUCT_NAME } from "@/lib/brand";
 
 const FEATURES = [
   {
-    icon: Map,
-    title: "Visual workflow map",
-    text: "Eight structured, connected blocks covering idea, product, marketing, finance, legal, ops, team, and launch.",
+    icon: Sparkles,
+    title: "Founder Operating System",
+    text: "Land inside your company — not a chat window. Dashboard, workspace, finance, validator, and coach in one command center.",
   },
   {
-    icon: ListChecks,
-    title: "Ordered action plans",
-    text: "Every block breaks into step-by-step tasks with the exact tools, websites, and software to use — in order.",
+    icon: Map,
+    title: "Company Digital Twin",
+    text: "Draggable modules connected with live flow lines. Business model → revenue → MVP → execution — all linked.",
   },
   {
     icon: DollarSign,
-    title: "Budget-aware tools",
-    text: "Set your budget and get recommendations that actually fit — free tools for bootstrappers, premium for the funded.",
+    title: "Budget & finance built in",
+    text: "See allocation per block, recommended tools for your budget, runway, and a live revenue simulator.",
+  },
+  {
+    icon: ListChecks,
+    title: "Premium AI roadmap",
+    text: "Phased kanban — Now, Next, Later, Done — with tasks, costs, and progress on every block.",
   },
   {
     icon: Bot,
-    title: ASSISTANT_NAME,
-    text: `${ASSISTANT_NAME} updates your roadmap and answers questions — add blocks, set budgets, and plan every part of your startup, 24/7.`,
+    title: `${ASSISTANT_NAME} Founder Coach`,
+    text: "Always on the right side of your workspace. Product manager, CTO, and strategist — makes real changes.",
   },
   {
     icon: Bell,
-    title: "Daily reminders",
-    text: "Stay accountable with scheduled notifications so you make progress every single day.",
-  },
-  {
-    icon: Users,
-    title: "Team collaboration",
-    text: "On Pro, invite co-founders and teammates to build the same roadmap together in real time.",
+    title: "Daily habits & tracker",
+    text: "Founder habit checklist with streaks. Stay accountable and ship something every day.",
   },
 ];
 
@@ -145,45 +145,43 @@ export function PromptHero() {
   return (
     <>
       {/* Hero */}
-      <div className="relative overflow-hidden bg-slate-100">
+      <div className="relative overflow-hidden founder-bg">
         <div className="pointer-events-none absolute inset-0 grid-texture opacity-40" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(15,36,68,0.16),_transparent_55%)]" />
 
         <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-12 lg:pb-20 lg:pt-16">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
             <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-4 py-1.5 text-sm font-medium text-navy-800 shadow-sm">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-navy-200/80 bg-white/90 px-4 py-2 text-sm font-medium text-navy-800 shadow-sm backdrop-blur">
                 <Sparkles className="h-4 w-4 text-navy-600" />
-                Trusted by 12,400+ founders worldwide
+                The operating system for startups
               </div>
 
-              <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-navy-950 sm:text-5xl lg:text-[3.4rem]">
-                Turn your idea into a{" "}
-                <span className="text-gradient-navy">full business</span>{" "}
-                <span className="font-serif-accent font-normal text-navy-700">
-                  roadmap
-                </span>
+              <h1 className="font-display text-4xl font-bold leading-[1.06] tracking-tight text-navy-950 sm:text-5xl lg:text-[3.5rem]">
+                Your startup&apos;s{" "}
+                <span className="text-gradient-navy">command center</span>
+                , not another chatbot
               </h1>
 
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
-                The AI startup planner that maps your entire business — from validation
-                to launch — with step-by-step action plans, budget-aware tools, {ASSISTANT_NAME},
-                and progress tracking built in.
+              <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-600">
+                {PRODUCT_NAME} is the AI Founder OS — roadmap, finances, recommended tools,
+                validation scores, daily habits, and an integrated coach. Everything visual.
+                Everything connected.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
                   href="#get-started"
-                  className="inline-flex items-center gap-2 rounded-xl bg-navy-900 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-navy-900/20 transition hover:bg-navy-800"
+                  className="inline-flex items-center gap-2 rounded-xl bg-navy-900 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-navy-900/25 transition hover:bg-navy-800"
                 >
-                  Build my roadmap free
+                  Launch your Founder OS
                   <ArrowRight className="h-4 w-4" />
                 </a>
                 <Link
-                  href="/pricing"
+                  href="/about"
                   className="inline-flex items-center gap-2 rounded-xl border border-navy-200 bg-white px-6 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400"
                 >
-                  See pricing
+                  About us
                 </Link>
               </div>
 
@@ -434,21 +432,24 @@ export function PromptHero() {
               Everything you need
             </p>
             <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-navy-950 sm:text-4xl">
-              One platform for your entire startup journey
+              One Founder OS for your entire journey
             </h2>
+            <p className="mt-3 text-slate-600">
+              Finance, roadmap, habits, validation, and AI — not scattered docs and generic chat.
+            </p>
           </div>
 
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className="card-3d-lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-lg hover:shadow-navy-900/5"
+                className="glass-card group rounded-2xl p-7"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 shadow-md shadow-navy-900/20">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-900 shadow-lg shadow-navy-900/25 transition group-hover:scale-105">
                   <Icon className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-display font-semibold text-navy-950">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{text}</p>
+                <h3 className="font-display text-lg font-bold text-navy-950">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">{text}</p>
               </div>
             ))}
           </div>

@@ -1,17 +1,13 @@
 import {
-  BarChart3,
-  Brain,
+  Flame,
   Calendar,
   CheckSquare,
-  Compass,
   DollarSign,
   FileText,
-  GitBranch,
   Globe,
   LayoutDashboard,
   Map,
   MessageSquare,
-  PieChart,
   Settings,
   Shield,
   Swords,
@@ -33,6 +29,7 @@ export type FounderModuleId =
   | "pitch"
   | "documents"
   | "tasks"
+  | "habits"
   | "calendar"
   | "chat"
   | "settings";
@@ -51,8 +48,9 @@ export const FOUNDER_NAV: FounderNavItem[] = [
   { id: "market", label: "Market", icon: Globe, description: "TAM, SAM, SOM research" },
   { id: "competitors", label: "Competitors", icon: Swords, description: "Competitive intelligence" },
   { id: "customers", label: "Customers", icon: Users, description: "Personas & segments" },
-  { id: "roadmap", label: "Roadmap", icon: Map, description: "Execution kanban" },
-  { id: "finance", label: "Finance", icon: DollarSign, description: "Revenue & runway" },
+  { id: "roadmap", label: "Roadmap", icon: Map, description: "Execution kanban & phases" },
+  { id: "finance", label: "Finance", icon: DollarSign, description: "Budget, tools & runway" },
+  { id: "habits", label: "Daily Habits", icon: Flame, description: "Founder habit tracker" },
   { id: "pitch", label: "Pitch Deck", icon: Target, description: "Fundraising readiness" },
   { id: "documents", label: "Documents", icon: FileText, description: "Plans & decks" },
   { id: "tasks", label: "Tasks", icon: CheckSquare, description: "Now / Next / Later" },

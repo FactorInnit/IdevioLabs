@@ -38,18 +38,24 @@ export function AppHeader() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-0.5">
           <Link
             href="/pricing"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
+            className="rounded-lg px-3.5 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
           >
             Pricing
           </Link>
           <Link
             href="/dashboard"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
+            className="rounded-lg px-3.5 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
           >
-            Command Center
+            My Startups
+          </Link>
+          <Link
+            href="/about"
+            className="rounded-lg px-3.5 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
+          >
+            About Us
           </Link>
 
           {loading ? (

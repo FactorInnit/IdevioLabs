@@ -27,7 +27,7 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   return (
     <div className="founder-bg flex min-h-screen">
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 flex w-[240px] flex-col border-r border-white/40 bg-white/50 backdrop-blur-xl">
+      <aside className="fixed inset-y-0 left-0 z-30 flex w-[252px] flex-col border-r border-navy-900/6 bg-white/80 backdrop-blur-2xl shadow-sm">
         <div className="flex items-center gap-2.5 border-b border-navy-900/5 px-5 py-4">
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <Logo size="sm" />
@@ -111,7 +111,7 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
       </aside>
 
       {/* Main */}
-      <main className="ml-[240px] min-h-screen flex-1">{children}</main>
+      <main className="ml-[252px] min-h-screen flex-1">{children}</main>
     </div>
   );
 }

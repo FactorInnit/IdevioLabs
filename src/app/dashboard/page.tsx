@@ -104,7 +104,7 @@ function DashboardContent() {
 
   return (
     <FounderShell>
-      <div className="px-8 py-10">
+        <div className="mx-auto max-w-6xl px-8 py-12">
         {/* Greeting */}
         <header className="mb-10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400">

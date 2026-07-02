@@ -39,10 +39,12 @@ export function AssistantPanel({
   context,
   onProjectChange,
   onSelectNode,
+  compact = false,
 }: {
   context: AssistantContext;
   onProjectChange?: () => Promise<void> | void;
   onSelectNode?: (nodeId: string) => void;
+  compact?: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -105,7 +107,15 @@ export function AssistantPanel({
   };
 
   return (
-    <div className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div
+      className={cn(
+        "flex h-full flex-col overflow-hidden",
+        compact
+          ? "min-h-0 rounded-xl bg-white"
+          : "min-h-[520px] rounded-2xl border border-slate-200 bg-white shadow-sm"
+      )}
+    >
+      {!compact && (
       <div className="flex items-center gap-3 border-b border-white/10 bg-navy-950 px-5 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
           <Bot className="h-4 w-4 text-white" />
@@ -120,6 +130,7 @@ export function AssistantPanel({
           </p>
         </div>
       </div>
+      )}
 
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.map((m, i) => (
