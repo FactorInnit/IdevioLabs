@@ -97,8 +97,8 @@ export function CommandCenterHero({
               </h1>
               <p className="mt-4 max-w-lg text-base leading-relaxed text-navy-200/90">
                 Your portfolio, live metrics, and next moves —{" "}
-                <span className="font-serif-accent text-navy-100">one cockpit</span> for every
-                company you&apos;re building.
+                <span className="font-serif-accent text-navy-100">one cockpit</span>{" "}
+                for every company you&apos;re building.
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export function CommandCenterHero({
                   <stat.icon className="h-4 w-4 text-navy-200" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-navy-300/80">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-white/85">
                     {stat.label}
                   </p>
                   <p className="font-display text-xl font-bold text-white">{stat.value}</p>
