@@ -20,6 +20,12 @@ export async function POST(
       description: body.description ? String(body.description) : undefined,
       estimatedCost:
         typeof body.estimatedCost === "number" ? body.estimatedCost : undefined,
+      tasks: Array.isArray(body.tasks)
+        ? body.tasks.map((t: { title?: string; detail?: string }) => ({
+            title: String(t.title ?? "Task"),
+            detail: t.detail ? String(t.detail) : undefined,
+          }))
+        : undefined,
     });
     return NextResponse.json(node, { status: 201 });
   } catch (error) {

@@ -13,8 +13,20 @@ import {
   MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { CANVAS_MODULES } from "@/lib/founder-nav";
 import { GlassCard } from "../GlassCard";
+
+const CANVAS_MODULES = [
+  "Business Model",
+  "Customer Personas",
+  "Revenue",
+  "Competitors",
+  "MVP",
+  "Tech Stack",
+  "Hiring",
+  "Marketing",
+  "Fundraising",
+  "Execution",
+] as const;
 
 const MODULE_Y_GAP = 120;
 

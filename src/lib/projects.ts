@@ -97,6 +97,7 @@ export async function updateNodeProgress(
     title?: string;
     description?: string;
     note?: string;
+    category?: string;
   }
 ) {
   const node = await prisma.workflowNode.update({
@@ -106,6 +107,7 @@ export async function updateNodeProgress(
       progress: data.progress,
       title: data.title,
       description: data.description,
+      category: data.category,
     },
   });
 
@@ -174,10 +176,19 @@ export async function createNodeForProject(
     title?: string;
     description?: string;
     estimatedCost?: number | null;
+    tasks?: { title: string; detail?: string }[];
   }
 ) {
   const count = await prisma.workflowNode.count({ where: { projectId } });
   const category = options?.category ?? "operations";
+  const defaultTasks = options?.tasks?.length
+    ? options.tasks.map((t) => ({
+        title: t.title,
+        detail: t.detail ?? "",
+        tools: [] as string[],
+        estimatedTime: "",
+      }))
+    : [];
   const node = await prisma.workflowNode.create({
     data: {
       projectId,
@@ -187,7 +198,7 @@ export async function createNodeForProject(
         options?.description ??
         "Describe what this step of your roadmap involves.",
       tools: JSON.stringify([]),
-      tasks: JSON.stringify([]),
+      tasks: JSON.stringify(defaultTasks),
       status: "pending",
       progress: 0,
       posX: 120 + (count % 4) * 340,

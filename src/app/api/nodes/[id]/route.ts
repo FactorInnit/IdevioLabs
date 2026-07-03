@@ -21,6 +21,7 @@ export async function PATCH(
       title: body.title,
       description: body.description,
       note: body.note,
+      category: body.category,
     });
 
     return NextResponse.json(node);

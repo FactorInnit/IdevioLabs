@@ -5,23 +5,46 @@ import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { FounderShell } from "@/components/founder/FounderShell";
 import { FounderCoachPanel } from "@/components/founder/FounderCoachPanel";
-import { ModuleCanvas } from "@/components/founder/modules/ModuleCanvas";
+import { CanvasWorkspace } from "@/components/founder/modules/CanvasWorkspace";
 import { ValidatorModule } from "@/components/founder/modules/ValidatorModule";
 import { CompetitorsModule } from "@/components/founder/modules/CompetitorsModule";
 import { FinanceDashboardModule } from "@/components/founder/modules/FinanceDashboardModule";
 import { RoadmapModule } from "@/components/founder/modules/RoadmapModule";
 import { HabitsModule } from "@/components/founder/modules/HabitsModule";
+import { CalendarModule } from "@/components/founder/modules/CalendarModule";
+import { TeamModule } from "@/components/founder/modules/TeamModule";
 import { RiskAnalysisModule } from "@/components/founder/modules/RiskAnalysisModule";
 import { HealthScorePanel } from "@/components/founder/CompanyCard";
 import { GlassCard } from "@/components/founder/GlassCard";
 import type { FounderModuleId } from "@/lib/founder-nav";
 import type { getProject } from "@/lib/projects";
+import { cn } from "@/lib/utils";
 
 export type CompanyProject = NonNullable<Awaited<ReturnType<typeof getProject>>>;
 
+const IMPLEMENTED_MODULES = new Set<FounderModuleId>([
+  "workspace",
+  "validator",
+  "competitors",
+  "finance",
+  "dashboard",
+  "roadmap",
+  "habits",
+  "calendar",
+  "team",
+]);
+
+const WIDE_MODULES = new Set<FounderModuleId>(["workspace", "roadmap"]);
+
 function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
   const params = useSearchParams();
-  const module = (params.get("module") as FounderModuleId) || "workspace";
+  const rawModule = params.get("module");
+  const module: FounderModuleId =
+    rawModule === "market" || rawModule === "tasks"
+      ? rawModule === "market"
+        ? "validator"
+        : "roadmap"
+      : (rawModule as FounderModuleId) || "workspace";
 
   const projectMeta = {
     id: project.id,
@@ -58,7 +81,12 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
     <FounderShell companyId={project.id} companyName={project.name}>
       <div className="flex min-h-screen">
         <div className="min-w-0 flex-1 pr-[392px]">
-          <div className="mx-auto max-w-6xl px-8 py-10">
+          <div
+            className={cn(
+              "mx-auto px-8 py-10",
+              WIDE_MODULES.has(module) ? "max-w-[1600px]" : "max-w-6xl"
+            )}
+          >
             <header className="mb-10">
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400">
                 {project.name}
@@ -71,9 +99,9 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
               </p>
             </header>
 
-            {module === "workspace" && <ModuleCanvas />}
-            {module === "validator" && <ValidatorModule project={projectMeta} />}
-            {module === "competitors" && <CompetitorsModule />}
+            {module === "workspace" && <CanvasWorkspace project={project} />}
+            {module === "validator" && <ValidatorModule projectId={project.id} />}
+            {module === "competitors" && <CompetitorsModule projectId={project.id} />}
             {module === "finance" && (
               <FinanceDashboardModule
                 project={{
@@ -83,7 +111,6 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
                 }}
               />
             )}
-            {module === "market" && <MarketModule />}
             {module === "dashboard" && (
               <div className="space-y-8">
                 <HealthScorePanel {...projectMeta} />
@@ -97,23 +124,17 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
                 <RiskAnalysisModule />
               </div>
             )}
-            {(module === "roadmap" || module === "tasks") && (
-              <RoadmapModule project={project} />
-            )}
+            {module === "roadmap" && <RoadmapModule project={project} />}
             {module === "habits" && (
               <HabitsModule projectId={project.id} projectName={project.name} />
             )}
-            {![
-              "workspace",
-              "validator",
-              "competitors",
-              "finance",
-              "market",
-              "dashboard",
-              "roadmap",
-              "tasks",
-              "habits",
-            ].includes(module) && <ComingSoonModule module={module} />}
+            {module === "calendar" && (
+              <CalendarModule projectId={project.id} projectName={project.name} />
+            )}
+            {module === "team" && (
+              <TeamModule projectId={project.id} projectName={project.name} />
+            )}
+            {!IMPLEMENTED_MODULES.has(module) && <ComingSoonModule module={module} />}
           </div>
         </div>
 
@@ -125,20 +146,19 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
 
 function moduleTitle(module: FounderModuleId): string {
   const titles: Record<string, string> = {
-    workspace: "Company Digital Twin",
+    workspace: "Company Canvas",
     validator: "Startup Validator",
-    market: "Market Research",
     competitors: "Competitor Intelligence",
     finance: "Financial Dashboard",
     dashboard: "Company Overview",
-    roadmap: "AI Roadmap",
-    tasks: "Task Board",
-    habits: "Daily Habits & Tracker",
+    roadmap: "Execution Roadmap",
+    habits: "Daily Habits & Planner",
+    calendar: "Startup Calendar",
+    team: "Team Workspace",
     chat: "AI Founder Coach",
     customers: "Customer Personas",
     pitch: "Pitch Deck",
     documents: "Documents",
-    calendar: "Calendar",
     settings: "Settings",
   };
   return titles[module] ?? "Workspace";
@@ -147,45 +167,19 @@ function moduleTitle(module: FounderModuleId): string {
 function moduleDescription(module: FounderModuleId): string {
   const desc: Record<string, string> = {
     workspace:
-      "Your live startup model — every module connects. Drag blocks, see the full stack.",
-    finance:
-      "Budget breakdown, recommended tools, cost per block, and revenue projections.",
+      "Your interactive canvas — drag blocks between business sections, customize colors, and add notes.",
+    finance: "Budget breakdown, recommended tools, cost per block, and revenue projections.",
     roadmap:
-      "Phased execution board with tasks, progress, and costs — Now, Next, Later, Done.",
+      "Visual execution map with sequence, progress sliders, and a kanban board view.",
     habits:
-      "Daily founder rituals that keep you shipping. Track streaks and completion.",
-    validator: "Confidence-weighted scores across market, moat, timing, and more.",
+      "Track habits, plan your week with time blocks, add notes, and see consistency on a calendar.",
+    calendar: "Schedule investor calls, team meetings, and track launch deadlines.",
+    validator: "In-depth AI report with radar charts, pros/cons, risks, and improvement actions.",
+    competitors: "Where competitors fail, how to beat them, and one-click add to your roadmap.",
+    team: "Chat with co-founders and teammates working on this startup.",
     dashboard: "Health score, finances, and risks at a glance.",
   };
   return desc[module] ?? "Part of your Company Digital Twin — updates as you build.";
-}
-
-function MarketModule() {
-  const markets = [
-    { country: "United States", tam: "$2.1B", growth: "+18%", size: 100 },
-    { country: "United Kingdom", tam: "$420M", growth: "+14%", size: 65 },
-    { country: "Germany", tam: "$380M", growth: "+12%", size: 58 },
-    { country: "India", tam: "$890M", growth: "+24%", size: 82 },
-  ];
-  return (
-    <div className="grid gap-5 sm:grid-cols-2">
-      {markets.map((m) => (
-        <GlassCard key={m.country} className="p-6" hover={false}>
-          <h3 className="font-display text-lg font-bold text-navy-900">{m.country}</h3>
-          <div className="mt-4 flex items-end gap-4">
-            <div
-              className="rounded-t-xl bg-gradient-to-t from-navy-800 to-navy-400"
-              style={{ width: 40, height: m.size }}
-            />
-            <div>
-              <p className="font-display text-xl font-bold text-navy-900">{m.tam}</p>
-              <p className="text-sm font-medium text-emerald-600">{m.growth} YoY</p>
-            </div>
-          </div>
-        </GlassCard>
-      ))}
-    </div>
-  );
 }
 
 function ComingSoonModule({ module }: { module: string }) {
