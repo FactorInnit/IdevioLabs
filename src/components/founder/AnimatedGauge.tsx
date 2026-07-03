@@ -11,6 +11,7 @@ interface AnimatedGaugeProps {
   label?: string;
   sublabel?: string;
   className?: string;
+  light?: boolean;
 }
 
 export function AnimatedGauge({
@@ -21,6 +22,7 @@ export function AnimatedGauge({
   label,
   sublabel,
   className,
+  light = false,
 }: AnimatedGaugeProps) {
   const [animated, setAnimated] = useState(0);
   const radius = (size - stroke) / 2;
@@ -41,7 +43,7 @@ export function AnimatedGauge({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(8,26,58,0.08)"
+          stroke={light ? "rgba(255,255,255,0.12)" : "rgba(8,26,58,0.08)"}
           strokeWidth={stroke}
         />
         <circle
@@ -49,7 +51,7 @@ export function AnimatedGauge({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="url(#gaugeGrad)"
+          stroke={light ? "url(#gaugeGradLight)" : "url(#gaugeGrad)"}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -61,21 +63,34 @@ export function AnimatedGauge({
             <stop offset="0%" stopColor="#081a3a" />
             <stop offset="100%" stopColor="#4a78b4" />
           </linearGradient>
+          <linearGradient id="gaugeGradLight" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#7aa3d4" />
+          </linearGradient>
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-3xl font-bold text-navy-900">
+        <span
+          className={cn(
+            "font-display text-3xl font-bold",
+            light ? "text-white" : "text-navy-900"
+          )}
+        >
           {Math.round(animated)}
         </span>
         {max !== 100 && (
-          <span className="text-xs text-slate-400">/{max}</span>
+          <span className={cn("text-xs", light ? "text-navy-300" : "text-slate-400")}>
+            /{max}
+          </span>
         )}
       </div>
       {label && (
-        <p className="mt-3 text-sm font-semibold text-navy-900">{label}</p>
+        <p className={cn("mt-3 text-sm font-semibold", light ? "text-white" : "text-navy-900")}>
+          {label}
+        </p>
       )}
       {sublabel && (
-        <p className="text-xs text-slate-500">{sublabel}</p>
+        <p className={cn("text-xs", light ? "text-navy-300" : "text-slate-500")}>{sublabel}</p>
       )}
     </div>
   );

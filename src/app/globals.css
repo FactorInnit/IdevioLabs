@@ -227,7 +227,9 @@ body {
   .cta-orb,
   .founder-float,
   .founder-glow-pulse,
-  .founder-shimmer {
+  .founder-shimmer,
+  .dashboard-orb,
+  .dashboard-orb-delayed {
     animation: none;
   }
 
@@ -336,4 +338,17 @@ body {
 .sidebar-item-active {
   background: linear-gradient(90deg, rgba(74, 120, 180, 0.15), transparent);
   border-left: 2px solid var(--navy-500);
+}
+
+.dashboard-orb {
+  animation: dashboard-orb 8s ease-in-out infinite;
+}
+
+.dashboard-orb-delayed {
+  animation: dashboard-orb 10s ease-in-out infinite 2s;
+}
+
+@keyframes dashboard-orb {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
 }
