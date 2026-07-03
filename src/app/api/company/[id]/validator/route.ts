@@ -23,9 +23,7 @@ export async function GET(
     return NextResponse.json({ report });
   } catch (error) {
     console.error("Validator report error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate validation report." },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -21,12 +21,21 @@ export function CompetitorsModule({ projectId }: { projectId: string }) {
   const [adding, setAdding] = useState<string | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
 
+  const [error, setError] = useState("");
+
   const load = async () => {
     setLoading(true);
-    const res = await fetch(`/api/company/${projectId}/competitors`);
-    const data = await res.json();
-    if (res.ok) setReport(data.report);
-    setLoading(false);
+    setError("");
+    try {
+      const res = await fetch(`/api/company/${projectId}/competitors`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to load report");
+      setReport(data.report);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -63,11 +72,11 @@ export function CompetitorsModule({ projectId }: { projectId: string }) {
     );
   }
 
-  if (!report) {
+  if (error || !report) {
     return (
       <GlassCard className="p-8 text-center" hover={false}>
-        Failed to load report.{" "}
-        <button onClick={load} className="underline">
+        <p className="text-red-600">{error || "No report"}</p>
+        <button onClick={load} className="mt-4 text-sm font-semibold text-navy-700">
           Retry
         </button>
       </GlassCard>
@@ -86,6 +95,15 @@ export function CompetitorsModule({ projectId }: { projectId: string }) {
               </h2>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">{report.summary}</p>
+            {report.source === "ai" ? (
+              <span className="mt-3 inline-block rounded-full bg-violet-50 px-3 py-1 text-[10px] font-semibold text-violet-800">
+                AI research report
+              </span>
+            ) : (
+              <span className="mt-3 inline-block rounded-full bg-amber-50 px-3 py-1 text-[10px] font-semibold text-amber-800">
+                Research preview — add OPENAI_API_KEY for live AI
+              </span>
+            )}
           </div>
           <button
             onClick={load}

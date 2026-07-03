@@ -106,6 +106,9 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
                 </p>
               </div>
             </div>
+            <p className="mt-2 text-[9px] text-slate-300">
+              build {process.env.NEXT_PUBLIC_BUILD_SHA}
+            </p>
           </div>
         )}
       </aside>

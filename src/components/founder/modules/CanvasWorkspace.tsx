@@ -3,7 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  GripVertical,
+  Background,
+  Controls,
+  MarkerType,
+  MiniMap,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  type Edge,
+  type Node,
+  type OnNodeDrag,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import {
   MessageSquare,
   Palette,
   Plus,
@@ -11,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { CanvasBlockNode, type CanvasBlockNodeData } from "./CanvasBlockNode";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import { parseNodeTasks } from "@/lib/project-utils";
 import {
@@ -25,7 +38,9 @@ import { cn } from "@/lib/utils";
 import type { NodeCategory } from "@/lib/types";
 import type { CompanyProject } from "../CompanyWorkspace";
 
-const SECTIONS: NodeCategory[] = [
+const nodeTypes = { canvasBlock: CanvasBlockNode };
+
+const CATEGORY_ORDER: NodeCategory[] = [
   "idea",
   "product",
   "marketing",
@@ -36,18 +51,45 @@ const SECTIONS: NodeCategory[] = [
   "launch",
 ];
 
+const sequenceKey = (projectId: string) => `idevio-canvas-seq-${projectId}`;
+
+function defaultSequence(nodes: CompanyProject["nodes"]): string[] {
+  return [...nodes].sort((a, b) => {
+    const ca = CATEGORY_ORDER.indexOf(a.category as NodeCategory);
+    const cb = CATEGORY_ORDER.indexOf(b.category as NodeCategory);
+    if (ca !== cb) return ca - cb;
+    return a.createdAt > b.createdAt ? 1 : -1;
+  }).map((n) => n.id);
+}
+
+function mindMapPosition(index: number, total: number) {
+  const cols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(total))));
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  const xOffset = row % 2 === 1 ? 140 : 0;
+  return { x: col * 320 + xOffset, y: row * 200 };
+}
+
 export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   const router = useRouter();
   const [meta, setMeta] = useState<CanvasMeta>({ colors: {}, comments: {}, sectionOrder: {} });
-  const [dragId, setDragId] = useState<string | null>(null);
+  const [sequence, setSequence] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showAdd, setShowAdd] = useState<NodeCategory | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [newCategory, setNewCategory] = useState<NodeCategory>("product");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setMeta(loadCanvasMeta(project.id));
-  }, [project.id]);
+    try {
+      const raw = localStorage.getItem(sequenceKey(project.id));
+      if (raw) setSequence(JSON.parse(raw));
+      else setSequence(defaultSequence(project.nodes));
+    } catch {
+      setSequence(defaultSequence(project.nodes));
+    }
+  }, [project.id, project.nodes]);
 
   const persistMeta = useCallback(
     (next: CanvasMeta) => {
@@ -57,56 +99,101 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
     [project.id]
   );
 
-  const nodesBySection = useMemo(() => {
-    const map: Record<NodeCategory, CompanyProject["nodes"]> = {} as Record<
-      NodeCategory,
-      CompanyProject["nodes"]
-    >;
-    for (const cat of SECTIONS) {
-      const nodes = project.nodes.filter((n) => n.category === cat);
-      const order = meta.sectionOrder[cat];
-      if (order?.length) {
-        map[cat] = [...nodes].sort(
-          (a, b) => (order.indexOf(a.id) ?? 999) - (order.indexOf(b.id) ?? 999)
-        );
-      } else {
-        map[cat] = nodes;
-      }
+  const orderedNodes = useMemo(() => {
+    const ids = sequence.length ? sequence : defaultSequence(project.nodes);
+    return ids
+      .map((id) => project.nodes.find((n) => n.id === id))
+      .filter(Boolean) as CompanyProject["nodes"];
+  }, [project.nodes, sequence]);
+
+  const flowNodes: Node[] = useMemo(() => {
+    return orderedNodes.map((node, index) => {
+      const color = getBlockColor(meta.colors[node.id]);
+      const tasks = parseNodeTasks(node.tasks);
+      const pos =
+        node.posX > 0 || node.posY > 0
+          ? { x: node.posX, y: node.posY }
+          : mindMapPosition(index, orderedNodes.length);
+
+      return {
+        id: node.id,
+        type: "canvasBlock",
+        position: pos,
+        data: {
+          title: node.title,
+          description: node.description,
+          progress: node.progress,
+          category: node.category as NodeCategory,
+          taskCount: tasks.length,
+          borderColor: color.bg,
+          bgColor: color.light,
+          step: index + 1,
+          hasNote: Boolean(meta.comments[node.id]),
+        } satisfies CanvasBlockNodeData,
+      };
+    });
+  }, [orderedNodes, meta]);
+
+  const flowEdges: Edge[] = useMemo(() => {
+    if (project.edges.length > 0) {
+      return project.edges.map((e) => ({
+        id: e.id,
+        source: e.sourceId,
+        target: e.targetId,
+        animated: true,
+        style: { stroke: "#4a78b4", strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#4a78b4" },
+      }));
     }
-    return map;
-  }, [project.nodes, meta.sectionOrder]);
+    return orderedNodes.slice(0, -1).map((node, i) => ({
+      id: `seq-${node.id}`,
+      source: node.id,
+      target: orderedNodes[i + 1].id,
+      animated: true,
+      style: { stroke: "#081a3a", strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#081a3a" },
+    }));
+  }, [project.edges, orderedNodes]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
+
+  useEffect(() => {
+    setNodes(flowNodes);
+    setEdges(flowEdges);
+  }, [flowNodes, flowEdges, setNodes, setEdges]);
 
   const selected = project.nodes.find((n) => n.id === selectedId);
 
-  const moveToSection = async (nodeId: string, category: NodeCategory) => {
-    await fetch(`/api/nodes/${nodeId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category }),
-    });
-    router.refresh();
-  };
+  const onNodeDragStop: OnNodeDrag = useCallback(
+    async (_event, node) => {
+      await fetch(`/api/nodes/${node.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ posX: node.position.x, posY: node.position.y }),
+      });
+    },
+    []
+  );
 
-  const onSectionDrop = (cat: NodeCategory) => {
-    if (!dragId) return;
-    moveToSection(dragId, cat);
-    setDragId(null);
-  };
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedId(node.id);
+  }, []);
 
-  const addBlock = async (category: NodeCategory) => {
+  const addBlock = async () => {
     if (!newTitle.trim()) return;
     setSaving(true);
     await fetch(`/api/projects/${project.id}/nodes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        category,
+        category: newCategory,
         title: newTitle.trim(),
         description: "Custom canvas block — add tasks and notes as you go.",
       }),
     });
     setNewTitle("");
-    setShowAdd(null);
+    setShowAdd(false);
     setSaving(false);
     router.refresh();
   };
@@ -135,147 +222,101 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
     });
   };
 
+  const updateProgress = async (nodeId: string, progress: number) => {
+    await fetch(`/api/nodes/${nodeId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        progress,
+        status: progress >= 100 ? "completed" : progress > 0 ? "in_progress" : "pending",
+      }),
+    });
+    router.refresh();
+  };
+
   return (
     <div className="space-y-4">
       <GlassCard className="flex flex-wrap items-center justify-between gap-3 p-4" hover={false}>
         <p className="text-sm text-slate-600">
-          Your startup canvas — <strong className="text-navy-900">drag blocks</strong> between
-          sections, click to customize colors &amp; add notes.
+          Your startup mind map —{" "}
+          <strong className="text-navy-900">drag blocks</strong> between sections on the canvas, click
+          to edit, colors &amp; notes. Blocks connect in execution sequence.
         </p>
-        <span className="rounded-full bg-navy-900/8 px-3 py-1 text-xs font-semibold text-navy-800">
-          {project.nodes.length} blocks
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-navy-900/8 px-3 py-1 text-xs font-semibold text-navy-800">
+            {project.nodes.length} blocks
+          </span>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="inline-flex items-center gap-1 rounded-xl bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add block
+          </button>
+        </div>
       </GlassCard>
 
-      <div className="overflow-x-auto pb-4">
-        <div className="flex min-w-max gap-4">
-          {SECTIONS.map((cat) => {
-            const config = CATEGORY_CONFIG[cat];
-            const nodes = nodesBySection[cat] ?? [];
-            return (
-              <div
-                key={cat}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => onSectionDrop(cat)}
-                className="flex w-[280px] shrink-0 flex-col rounded-2xl border border-navy-900/8 bg-white/60 shadow-sm"
-              >
-                <div
-                  className="rounded-t-2xl px-4 py-3"
-                  style={{ backgroundColor: config.minimap }}
-                >
-                  <h3 className="font-display text-sm font-bold text-white">{config.label}</h3>
-                  <p className="text-[10px] text-white/70">
-                    {nodes.length} block{nodes.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
+      {showAdd && (
+        <GlassCard className="p-4" hover={false}>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value as NodeCategory)}
+              className="rounded-xl border px-3 py-2 text-sm"
+            >
+              {CATEGORY_ORDER.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_CONFIG[c].label}
+                </option>
+              ))}
+            </select>
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Block title…"
+              className="rounded-xl border px-3 py-2 text-sm sm:col-span-2"
+              onKeyDown={(e) => e.key === "Enter" && addBlock()}
+            />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={addBlock}
+              disabled={saving}
+              className="rounded-xl bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Create
+            </button>
+            <button onClick={() => setShowAdd(false)} className="text-sm text-slate-500">
+              Cancel
+            </button>
+          </div>
+        </GlassCard>
+      )}
 
-                <div className="flex min-h-[320px] flex-1 flex-col gap-3 p-3">
-                  {nodes.map((node) => {
-                    const color = getBlockColor(meta.colors[node.id]);
-                    const tasks = parseNodeTasks(node.tasks);
-                    const comment = meta.comments[node.id];
-                    return (
-                      <div
-                        key={node.id}
-                        draggable
-                        onDragStart={() => setDragId(node.id)}
-                        onDragEnd={() => setDragId(null)}
-                        onClick={() => setSelectedId(node.id)}
-                        className={cn(
-                          "cursor-grab rounded-xl border-2 p-4 shadow-md transition active:cursor-grabbing",
-                          dragId === node.id && "opacity-40",
-                          selectedId === node.id && "ring-2 ring-navy-700 ring-offset-2"
-                        )}
-                        style={{
-                          borderColor: color.bg,
-                          backgroundColor: color.light,
-                        }}
-                      >
-                        <div className="flex items-start gap-2">
-                          <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-display text-base font-bold leading-snug text-navy-900">
-                              {node.title}
-                            </p>
-                            <p className="mt-1 line-clamp-2 text-xs text-slate-600">
-                              {node.description}
-                            </p>
-                            <div className="mt-3">
-                              <div className="mb-1 flex justify-between text-[10px] font-semibold text-navy-700">
-                                <span>Progress</span>
-                                <span>{node.progress}%</span>
-                              </div>
-                              <div className="h-2 overflow-hidden rounded-full bg-white/80">
-                                <div
-                                  className="h-full rounded-full transition-all"
-                                  style={{
-                                    width: `${node.progress}%`,
-                                    backgroundColor: color.bg,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            {tasks.length > 0 && (
-                              <p className="mt-2 text-[10px] font-medium text-slate-500">
-                                {tasks.length} tasks
-                              </p>
-                            )}
-                            {comment && (
-                              <p className="mt-2 flex items-center gap-1 text-[10px] text-navy-600">
-                                <MessageSquare className="h-3 w-3" />
-                                Note added
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {showAdd === cat ? (
-                    <div className="rounded-xl border border-dashed border-navy-300 bg-white p-3">
-                      <input
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        placeholder="Block title…"
-                        className="w-full rounded-lg border px-2 py-1.5 text-sm"
-                        autoFocus
-                        onKeyDown={(e) => e.key === "Enter" && addBlock(cat)}
-                      />
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={() => addBlock(cat)}
-                          disabled={saving}
-                          className="rounded-lg bg-navy-900 px-3 py-1 text-xs font-semibold text-white"
-                        >
-                          Add
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAdd(null);
-                            setNewTitle("");
-                          }}
-                          className="text-xs text-slate-500"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowAdd(cat)}
-                      className="flex items-center justify-center gap-1 rounded-xl border-2 border-dashed border-navy-900/15 py-3 text-xs font-semibold text-navy-600 transition hover:border-navy-400 hover:bg-navy-900/5"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Add block
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <GlassCard className="h-[calc(100vh-14rem)] overflow-hidden p-0" hover={false}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeDragStop={onNodeDragStop}
+          onNodeClick={onNodeClick}
+          fitView
+          fitViewOptions={{ padding: 0.25 }}
+          minZoom={0.25}
+          maxZoom={1.5}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background gap={24} color="rgba(8,26,58,0.05)" />
+          <Controls />
+          <MiniMap
+            nodeColor="#081a3a"
+            maskColor="rgba(248,250,252,0.85)"
+            className="!rounded-xl"
+          />
+        </ReactFlow>
+      </GlassCard>
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/40 p-4 sm:items-center">
@@ -296,6 +337,18 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
             </div>
 
             <p className="mt-3 text-sm text-slate-600">{selected.description}</p>
+
+            <div className="mt-4">
+              <label className="text-xs font-semibold text-navy-800">Progress</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={selected.progress}
+                onChange={(e) => updateProgress(selected.id, Number(e.target.value))}
+                className="mt-1 w-full accent-navy-800"
+              />
+            </div>
 
             <div className="mt-5">
               <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-navy-800">
@@ -323,13 +376,13 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
             <div className="mt-5">
               <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-navy-800">
                 <MessageSquare className="h-4 w-4" />
-                Your notes &amp; comments
+                Notes &amp; comments
               </p>
               <textarea
                 value={meta.comments[selected.id] ?? ""}
                 onChange={(e) => setComment(selected.id, e.target.value)}
                 onBlur={(e) => saveCommentToServer(selected.id, e.target.value)}
-                placeholder="Add context, decisions, or reminders for this block…"
+                placeholder="Decisions, context, reminders…"
                 rows={4}
                 className="w-full rounded-xl border border-navy-900/10 px-3 py-2 text-sm"
               />
@@ -337,7 +390,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
 
             {parseNodeTasks(selected.tasks).length > 0 && (
               <div className="mt-5">
-                <p className="mb-2 text-xs font-semibold text-navy-800">Tasks in this block</p>
+                <p className="mb-2 text-xs font-semibold text-navy-800">Tasks</p>
                 <ol className="space-y-2">
                   {parseNodeTasks(selected.tasks).map((t, i) => (
                     <li

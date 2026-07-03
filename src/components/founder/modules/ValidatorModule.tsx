@@ -77,6 +77,15 @@ export function ValidatorModule({ projectId }: { projectId: string }) {
             <h2 className="font-display text-2xl font-bold text-navy-900">{report.verdict}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">{report.summary}</p>
             <div className="mt-4 flex flex-wrap gap-3 text-xs">
+              {report.source === "ai" ? (
+                <span className="rounded-full bg-violet-50 px-3 py-1 font-semibold text-violet-800">
+                  AI research report
+                </span>
+              ) : (
+                <span className="rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-800">
+                  Research preview — add OPENAI_API_KEY for live AI
+                </span>
+              )}
               <span className="rounded-full bg-navy-900/8 px-3 py-1 font-semibold text-navy-800">
                 {avgConfidence}% avg confidence
               </span>
