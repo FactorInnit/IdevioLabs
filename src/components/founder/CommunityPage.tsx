@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   ArrowLeft,
   Briefcase,
   Handshake,
+  Loader2,
   Rocket,
   Sparkles,
   TrendingUp,
@@ -43,6 +45,20 @@ const PLANNED_FEATURES = [
 ];
 
 export function CommunityPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center founder-bg">
+          <Loader2 className="h-8 w-8 animate-spin text-navy-700" />
+        </div>
+      }
+    >
+      <CommunityContent />
+    </Suspense>
+  );
+}
+
+function CommunityContent() {
   return (
     <FounderShell>
       <div className="mx-auto w-full max-w-5xl px-6 py-8 lg:px-10 lg:py-10">
