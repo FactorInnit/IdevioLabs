@@ -91,7 +91,7 @@ export async function sendTeamInviteEmail(input: {
   projectName: string;
   inviterName: string;
   role: MemberRole;
-}): Promise<void> {
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from =
     process.env.RESEND_FROM?.trim() || `${PRODUCT_NAME} <onboarding@resend.dev>`;
