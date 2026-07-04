@@ -375,8 +375,10 @@ body {
 .command-center-star {
   position: absolute;
   border-radius: 9999px;
-  background: white;
-  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 6px 1px rgba(255, 255, 255, 0.55),
+    0 0 12px 2px rgba(147, 197, 253, 0.25);
 }
 
 .command-center-star-twinkle {
@@ -390,12 +392,13 @@ body {
 
 .command-center-shooting-star {
   position: absolute;
-  width: 64px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), transparent);
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), transparent);
   opacity: 0;
   transform: rotate(-24deg);
   animation: command-center-shoot 12s ease-in-out infinite;
+  z-index: 2;
 }
 
 @keyframes command-center-shoot {

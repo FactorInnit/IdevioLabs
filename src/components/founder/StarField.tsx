@@ -1,15 +1,15 @@
 "use client";
 
 /** Deterministic star positions — stable across SSR and client. */
-const STARS = Array.from({ length: 72 }, (_, i) => {
+const STARS = Array.from({ length: 90 }, (_, i) => {
   const n = i + 1;
   return {
     id: i,
     left: ((n * 47 + 13) % 100) + (n % 7) * 0.3,
     top: ((n * 61 + 29) % 100) + (n % 5) * 0.4,
-    size: n % 11 === 0 ? 2.5 : n % 4 === 0 ? 1.75 : 1,
-    opacity: 0.25 + (n % 6) * 0.1,
-    twinkle: n % 5 === 0,
+    size: n % 11 === 0 ? 3 : n % 4 === 0 ? 2.25 : 1.5,
+    opacity: 0.45 + (n % 6) * 0.08,
+    twinkle: n % 4 === 0,
     delay: (n % 8) * 0.45,
     duration: 2.5 + (n % 4) * 0.8,
   };

@@ -86,14 +86,18 @@ export function CommandCenterHero({
   onNewCompany: () => void;
 }) {
   return (
-    <section className="relative overflow-hidden">
-      <StarField />
+    <section className="relative overflow-hidden border-b border-white/10">
+      {/* Base + atmosphere */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_0%_-20%,rgba(74,120,180,0.35),transparent_50%)]" />
-      <div className="pointer-events-none absolute -right-24 top-0 h-72 w-72 rounded-full bg-navy-400/20 blur-3xl dashboard-orb" />
-      <div className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl dashboard-orb-delayed" />
-      <div className="pointer-events-none absolute inset-0 grid-texture opacity-[0.07]" />
+      <div className="pointer-events-none absolute -right-24 top-0 z-[1] h-72 w-72 rounded-full bg-navy-400/20 blur-3xl dashboard-orb" />
+      <div className="pointer-events-none absolute -left-16 bottom-0 z-[1] h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl dashboard-orb-delayed" />
+      <div className="pointer-events-none absolute inset-0 z-[1] grid-texture opacity-[0.07]" />
 
-      <div className="relative border-b border-white/10 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 px-8 py-10 lg:py-14">
+      {/* Stars sit above the gradient so they stay visible */}
+      <StarField className="z-[2]" />
+
+      <div className="relative z-10 px-8 py-10 lg:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="max-w-2xl">
