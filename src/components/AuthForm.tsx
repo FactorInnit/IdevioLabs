@@ -99,6 +99,18 @@ export function AuthForm({
           Continue with Google
         </a>
 
+        <p className="mt-3 text-center text-xs leading-relaxed text-slate-500">
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="font-semibold text-navy-700 hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-semibold text-navy-700 hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+
         <div className="my-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-slate-200" />
           <span className="text-xs font-medium text-slate-400">or</span>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { PricingSection } from "@/components/PricingSection";
@@ -19,7 +19,7 @@ const FAQS = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Absolutely. Plans are month-to-month and you can downgrade or cancel whenever you like.",
+    a: "Yes. Paid plans are month-to-month. Cancel before your next billing date to avoid future charges. See our Refund Policy for details.",
   },
 ];
 
@@ -50,9 +50,20 @@ export default function PricingPage() {
         <section className="relative -mt-10 pb-20">
           <div className="mx-auto max-w-6xl px-6">
             <PricingSection />
-            <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-slate-500">
-              <ShieldCheck className="h-4 w-4 text-navy-600" />
-              Demo mode — selecting a plan activates it instantly, no payment required.
+            <p className="mt-8 text-center text-sm leading-relaxed text-slate-500">
+              Paid plans renew monthly until canceled. See our{" "}
+              <Link href="/terms" className="font-semibold text-navy-700 hover:underline">
+                Terms
+              </Link>
+              ,{" "}
+              <Link href="/refunds" className="font-semibold text-navy-700 hover:underline">
+                Refund Policy
+              </Link>
+              , and{" "}
+              <Link href="/privacy" className="font-semibold text-navy-700 hover:underline">
+                Privacy Policy
+              </Link>
+              . Payments are processed securely by Stripe.
             </p>
           </div>
         </section>
