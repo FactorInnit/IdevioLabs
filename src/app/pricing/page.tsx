@@ -15,7 +15,7 @@ const FAQS = [
   },
   {
     q: "What do collaborators get?",
-    a: "On Pro, you can invite up to 5 teammates to view and edit a roadmap with you. Ultra unlocks unlimited collaborators.",
+    a: "Free includes 1 teammate. Pro supports up to 5 collaborators with edit or view-only access. Ultra is unlimited.",
   },
   {
     q: "Can I cancel anytime?",

@@ -19,8 +19,12 @@
 | `STRIPE_WEBHOOK_SECRET` | from Stripe webhook |
 | `STRIPE_PRICE_PRO` | Stripe Price ID |
 | `STRIPE_PRICE_ULTRA` | Stripe Price ID |
+| `RESEND_API_KEY` | from [Resend](https://resend.com) for team invite emails |
+| `RESEND_FROM` | e.g. `Idevio <hello@ideviolabs.com>` |
 
 4. Deploy.
+
+> **Team invites:** After deploying, run the SQL in `prisma/migrations/20260704153000_add_team_invites/migration.sql` in your Turso **Edit Data** console (same database as `TURSO_DATABASE_URL`).
 
 > **Database:** SQLite (`file:./dev.db`) works locally but **not on Vercel serverless**. For production, use [Turso](https://turso.tech) (free tier):
 >

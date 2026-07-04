@@ -18,6 +18,7 @@ import { HealthScorePanel } from "@/components/founder/CompanyCard";
 import { GlassCard } from "@/components/founder/GlassCard";
 import type { FounderModuleId } from "@/lib/founder-nav";
 import type { getProject } from "@/lib/projects";
+import type { ProjectAccess } from "@/lib/project-access";
 import { cn } from "@/lib/utils";
 
 export type CompanyProject = NonNullable<Awaited<ReturnType<typeof getProject>>>;
@@ -36,7 +37,13 @@ const IMPLEMENTED_MODULES = new Set<FounderModuleId>([
 
 const WIDE_MODULES = new Set<FounderModuleId>(["workspace", "roadmap"]);
 
-function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
+function CompanyWorkspaceContent({
+  project,
+  access,
+}: {
+  project: CompanyProject;
+  access: ProjectAccess;
+}) {
   const params = useSearchParams();
   const rawModule = params.get("module");
   const module: FounderModuleId =
@@ -98,6 +105,13 @@ function CompanyWorkspaceContent({ project }: { project: CompanyProject }) {
                 {moduleDescription(module)}
               </p>
             </header>
+
+            {!access.canEdit && (
+              <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                View-only access — you can explore this workspace and use team chat, but edits are
+                disabled.
+              </div>
+            )}
 
             {module === "workspace" && <CanvasWorkspace project={project} />}
             {module === "validator" && <ValidatorModule projectId={project.id} />}
@@ -198,7 +212,13 @@ function ComingSoonModule({ module }: { module: string }) {
   );
 }
 
-export function CompanyWorkspace({ project }: { project: CompanyProject }) {
+export function CompanyWorkspace({
+  project,
+  access,
+}: {
+  project: CompanyProject;
+  access: ProjectAccess;
+}) {
   return (
     <Suspense
       fallback={
@@ -207,7 +227,7 @@ export function CompanyWorkspace({ project }: { project: CompanyProject }) {
         </div>
       }
     >
-      <CompanyWorkspaceContent project={project} />
+      <CompanyWorkspaceContent project={project} access={access} />
     </Suspense>
   );
 }

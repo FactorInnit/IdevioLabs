@@ -159,8 +159,21 @@ export async function getProject(id: string) {
 }
 
 export async function listProjects(userId?: string | null) {
+  if (!userId) {
+    return prisma.project.findMany({
+      where: { userId: null },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        nodes: true,
+        _count: { select: { reminders: true } },
+      },
+    });
+  }
+
   return prisma.project.findMany({
-    where: { userId: userId ?? null },
+    where: {
+      OR: [{ userId }, { members: { some: { userId } } }],
+    },
     orderBy: { updatedAt: "desc" },
     include: {
       nodes: true,
