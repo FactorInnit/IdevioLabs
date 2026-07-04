@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { ChevronLeft, Crown, Sparkles } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth-context";
 import { usePlan } from "@/lib/usePlan";
@@ -20,9 +20,11 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   const pathname = usePathname();
   const params = useSearchParams();
   const { user } = useAuth();
-  const { plan } = usePlan();
+  const { plan, planId } = usePlan();
   const activeModule = (params.get("module") as FounderModuleId) || "workspace";
   const isDashboard = pathname === "/dashboard";
+  const isPricing = pathname === "/pricing";
+  const showUpgrade = planId !== "ultra";
 
   return (
     <div className="founder-bg flex min-h-screen">
@@ -60,13 +62,27 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
 
         <nav className="flex-1 overflow-y-auto px-2 py-3">
           {isDashboard ? (
-            <Link
-              href="/dashboard"
-              className="sidebar-item-active flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-900"
-            >
-              <Sparkles className="h-4 w-4 text-navy-600" />
-              Command Center
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                className="sidebar-item-active mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-900"
+              >
+                <Sparkles className="h-4 w-4 text-navy-600" />
+                Command Center
+              </Link>
+              <Link
+                href="/pricing"
+                className={cn(
+                  "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+                  isPricing
+                    ? "sidebar-item-active font-semibold text-navy-900"
+                    : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
+                )}
+              >
+                <Crown className={cn("h-4 w-4 shrink-0", isPricing && "text-navy-600")} />
+                {showUpgrade ? "Upgrade plan" : "Plans & billing"}
+              </Link>
+            </>
           ) : (
             FOUNDER_NAV.map((item) => {
               const href = companyId
@@ -92,6 +108,28 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
             })
           )}
         </nav>
+
+        {user && showUpgrade && (
+          <div className="px-3 pb-3">
+            <Link
+              href="/pricing"
+              className="block rounded-2xl bg-gradient-to-br from-navy-900 to-navy-800 p-4 text-white shadow-lg shadow-navy-900/20 transition hover:from-navy-800 hover:to-navy-700"
+            >
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-amber-300" />
+                <span className="text-sm font-semibold">Upgrade plan</span>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-white/75">
+                {planId === "free"
+                  ? "Unlock more startups, team invites, and AI power."
+                  : "Go Ultra for unlimited companies and collaborators."}
+              </p>
+              <span className="mt-3 inline-flex text-[11px] font-semibold text-amber-200">
+                View pricing →
+              </span>
+            </Link>
+          </div>
+        )}
 
         {user && (
           <div className="border-t border-navy-900/5 p-4">
