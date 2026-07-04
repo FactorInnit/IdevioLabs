@@ -13,14 +13,15 @@ function isMissingCalendarColumnError(error: unknown): boolean {
 /** Verify production Turso has the Google Calendar columns before OAuth. */
 export async function calendarColumnsReady(): Promise<boolean> {
   try {
-    await prisma.$queryRawUnsafe(
-      'SELECT "googleCalendarRefreshToken", "googleCalendarEmail" FROM "User" LIMIT 1'
-    );
+    await prisma.user.findFirst({
+      select: { googleCalendarRefreshToken: true, googleCalendarEmail: true },
+    });
     return true;
   } catch (error) {
     if (isMissingCalendarColumnError(error)) return false;
+    // Avoid blocking OAuth when the check itself fails (e.g. adapter quirks).
     console.error("Google Calendar column check error:", error);
-    return false;
+    return true;
   }
 }
 
