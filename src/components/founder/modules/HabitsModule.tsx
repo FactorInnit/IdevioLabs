@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { cn } from "@/lib/utils";
+import { calcHabitStreak, notifyHabitsUpdated } from "@/lib/habits-streak";
 
 type Priority = "urgent" | "high" | "normal";
 
@@ -89,20 +90,7 @@ function loadData(projectId: string): HabitsData {
 }
 
 function calcStreak(log: Record<string, string[]>, habitCount: number): number {
-  let streak = 0;
-  const d = new Date();
-  for (;;) {
-    const key = d.toISOString().slice(0, 10);
-    const done = log[key]?.length ?? 0;
-    const threshold = Math.max(1, Math.ceil(habitCount * 0.6));
-    if (done >= threshold) {
-      streak++;
-      d.setDate(d.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  return streak;
+  return calcHabitStreak(log, habitCount || 4);
 }
 
 export function HabitsModule({
@@ -134,6 +122,7 @@ export function HabitsModule({
     (next: HabitsData) => {
       setData(next);
       localStorage.setItem(storageKey(projectId), JSON.stringify(next));
+      notifyHabitsUpdated();
     },
     [projectId]
   );

@@ -13,6 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { AnimatedProgressBar, MilestoneToast } from "../AnimatedProgressBar";
+import { useProgressCelebration } from "@/hooks/useProgressCelebration";
 import { CATEGORY_CONFIG, WORKFLOW_PHASES } from "@/lib/constants";
 import { parseNodeTasks } from "@/lib/project-utils";
 import { formatCurrency } from "@/lib/utils";
@@ -49,6 +51,13 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<NodeCategory>("product");
+  const [progressOverrides, setProgressOverrides] = useState<Record<string, number>>({});
+  const { milestoneToast, clearMilestoneToast, celebrateIfCrossed } = useProgressCelebration();
+
+  const getNodeProgress = useCallback(
+    (node: CompanyProject["nodes"][0]) => progressOverrides[node.id] ?? node.progress,
+    [progressOverrides]
+  );
 
   useEffect(() => {
     try {
@@ -116,6 +125,11 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
   );
 
   const updateProgress = async (nodeId: string, progress: number) => {
+    const node = project.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    const prev = getNodeProgress(node);
+    setProgressOverrides((current) => ({ ...current, [nodeId]: progress }));
+    await celebrateIfCrossed(prev, progress, node?.title);
     setSaving(nodeId);
     await fetch(`/api/nodes/${nodeId}`, {
       method: "PATCH",
@@ -169,12 +183,12 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
             <p className="font-display text-3xl font-bold text-navy-900">{overallProgress}%</p>
           </div>
           <div className="min-w-[200px] flex-1">
-            <div className="h-3 overflow-hidden rounded-full bg-navy-900/8">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-navy-800 to-emerald-500 transition-all"
-                style={{ width: `${overallProgress}%` }}
-              />
-            </div>
+            <AnimatedProgressBar
+              value={overallProgress}
+              trackClassName="h-3 bg-navy-900/8"
+              fillColor="#059669"
+              durationMs={900}
+            />
             <p className="mt-1 text-xs text-slate-500">
               {project.nodes.length} milestones · {project.nodes.filter((n) => n.progress >= 100).length} complete
             </p>
@@ -315,18 +329,21 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
                     <p className="font-display font-bold text-navy-900">{node.title}</p>
                     <p className="mt-1 line-clamp-2 text-xs text-slate-500">{node.description}</p>
                     <div className="mt-3">
-                      <div className="mb-1 flex justify-between text-[10px] font-semibold">
-                        <span>{node.progress}%</span>
-                        <span className="text-slate-400">{tasks.length} tasks</span>
-                      </div>
+                      <AnimatedProgressBar
+                        value={getNodeProgress(node)}
+                        showLabel
+                        labelClassName="text-navy-700"
+                        durationMs={600}
+                      />
                       <input
                         type="range"
                         min={0}
                         max={100}
-                        value={node.progress}
+                        value={getNodeProgress(node)}
                         onChange={(e) => updateProgress(node.id, Number(e.target.value))}
-                        className="w-full accent-navy-800"
+                        className="mt-2 w-full accent-navy-800"
                       />
+                      <p className="mt-1 text-[10px] text-slate-400">{tasks.length} tasks</p>
                     </div>
                     {node.estimatedCost != null && node.estimatedCost > 0 && (
                       <p className="mt-2 text-[10px] text-emerald-700">
@@ -381,12 +398,12 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
                             {cat?.shortLabel}
                           </span>
                           <p className="text-sm font-semibold text-navy-900">{node.title}</p>
-                          <div className="mt-2 h-1.5 rounded-full bg-navy-900/8">
-                            <div
-                              className="h-full rounded-full bg-navy-600"
-                              style={{ width: `${node.progress}%` }}
-                            />
-                          </div>
+                          <AnimatedProgressBar
+                            value={getNodeProgress(node)}
+                            className="mt-2"
+                            trackClassName="h-1.5 bg-navy-900/8"
+                            durationMs={600}
+                          />
                         </div>
                       </div>
                     </div>
@@ -397,6 +414,7 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
           ))}
         </div>
       )}
+      <MilestoneToast message={milestoneToast} onDone={clearMilestoneToast} />
     </div>
   );
 }

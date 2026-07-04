@@ -27,6 +27,8 @@ import {
   X,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { MilestoneToast } from "../AnimatedProgressBar";
+import { useProgressCelebration } from "@/hooks/useProgressCelebration";
 import { CanvasBlockNode, type CanvasBlockNodeData } from "./CanvasBlockNode";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import { parseNodeTasks } from "@/lib/project-utils";
@@ -83,6 +85,8 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<NodeCategory>("product");
   const [saving, setSaving] = useState(false);
+  const [editProgress, setEditProgress] = useState(0);
+  const { milestoneToast, clearMilestoneToast, celebrateIfCrossed } = useProgressCelebration();
 
   useEffect(() => {
     const stored = loadCanvasMeta(project.id);
@@ -180,6 +184,10 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   }, [flowNodes, flowEdges, setNodes, setEdges]);
 
   const selected = project.nodes.find((n) => n.id === selectedId);
+
+  useEffect(() => {
+    if (selected) setEditProgress(selected.progress);
+  }, [selected?.id, selected?.progress]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(
     async (_event, node) => {
@@ -306,6 +314,17 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   };
 
   const updateProgress = async (nodeId: string, progress: number) => {
+    const prev = editProgress;
+    setEditProgress(progress);
+    const nodeTitle = project.nodes.find((n) => n.id === nodeId)?.title;
+    await celebrateIfCrossed(prev, progress, nodeTitle);
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, progress } }
+          : node
+      )
+    );
     await fetch(`/api/nodes/${nodeId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -464,7 +483,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
                 type="range"
                 min={0}
                 max={100}
-                value={selected.progress}
+                value={editProgress}
                 onChange={(e) => updateProgress(selected.id, Number(e.target.value))}
                 className="mt-1 w-full accent-navy-800"
               />
@@ -535,6 +554,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           </div>
         </div>
       )}
+      <MilestoneToast message={milestoneToast} onDone={clearMilestoneToast} />
     </div>
   );
 }

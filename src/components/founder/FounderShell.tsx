@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, Crown, Sparkles, Zap } from "lucide-react";
+import { ChevronLeft, Crown, Newspaper, Sparkles, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { StreakBadge } from "@/components/founder/StreakBadge";
 import { useAuth } from "@/lib/auth-context";
 import { usePlan } from "@/lib/usePlan";
 import { FOUNDER_NAV, type FounderModuleId, companyModuleHref } from "@/lib/founder-nav";
@@ -24,7 +25,8 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   const activeModule = (params.get("module") as FounderModuleId) || "workspace";
   const isDashboard = pathname === "/dashboard";
   const isMotivation = pathname === "/motivation";
-  const isPortfolioNav = isDashboard || isMotivation;
+  const isNewsletter = pathname === "/newsletter";
+  const isPortfolioNav = isDashboard || isMotivation || isNewsletter;
   const isPricing = pathname === "/pricing";
   const showUpgrade = planId !== "ultra";
 
@@ -90,6 +92,18 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
                 Daily Motivation
               </Link>
               <Link
+                href="/newsletter"
+                className={cn(
+                  "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+                  isNewsletter
+                    ? "sidebar-item-active font-semibold text-navy-900"
+                    : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
+                )}
+              >
+                <Newspaper className={cn("h-4 w-4 shrink-0", isNewsletter && "text-navy-600")} />
+                Founder Brief
+              </Link>
+              <Link
                 href="/pricing"
                 className={cn(
                   "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
@@ -152,6 +166,9 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
 
         {user && (
           <div className="border-t border-navy-900/5 p-4">
+            <div className="mb-3 flex justify-center">
+              <StreakBadge compact />
+            </div>
             <div className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-900 text-xs font-bold text-white">
                 {user.name.charAt(0)}

@@ -19,6 +19,7 @@ import {
 import { GlassCard } from "./GlassCard";
 import { AnimatedGauge } from "./AnimatedGauge";
 import { CompanyCard } from "./CompanyCard";
+import { StreakBadge } from "./StreakBadge";
 import { computeCompanyMetrics } from "@/lib/founder-metrics";
 import { companyModuleHref } from "@/lib/founder-nav";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ export function CommandCenterHero({
   avgProgress,
   launchProb,
   priority,
+  projectIds,
   onNewCompany,
 }: {
   firstName: string;
@@ -74,6 +76,7 @@ export function CommandCenterHero({
   avgProgress: number;
   launchProb: number;
   priority: string;
+  projectIds: string[];
   onNewCompany: () => void;
 }) {
   return (
@@ -109,6 +112,10 @@ export function CommandCenterHero({
               <Plus className="h-4 w-4 transition group-hover:rotate-90" />
               New company
             </button>
+          </div>
+
+          <div className="mt-6">
+            <StreakBadge projectIds={projectIds} light />
           </div>
 
           <div className="mt-10 flex flex-wrap gap-3">
@@ -310,6 +317,7 @@ export function CommandCenter({
   const priority = projects[0]
     ? computeCompanyMetrics(projects[0]).nextMilestone
     : "Create your first company to get started.";
+  const projectIds = projects.map((p) => p.id);
 
   return (
     <div className="relative min-h-screen">
@@ -321,6 +329,7 @@ export function CommandCenter({
         avgProgress={avgProgress}
         launchProb={launchProb}
         priority={priority}
+        projectIds={projectIds}
         onNewCompany={onNewCompany}
       />
 

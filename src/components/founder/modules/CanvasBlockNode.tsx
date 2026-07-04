@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { GripVertical, MessageSquare } from "lucide-react";
+import { AnimatedProgressBar } from "../AnimatedProgressBar";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import type { NodeCategory } from "@/lib/types";
 
@@ -68,18 +69,12 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
                 <p className="line-clamp-2 text-[10px] leading-relaxed text-navy-800">{d.note}</p>
               </div>
             ) : null}
-            <div className="mt-3">
-              <div className="mb-1 flex justify-between text-[10px] font-semibold text-navy-700">
-                <span>Progress</span>
-                <span>{d.progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/80">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${d.progress}%`, backgroundColor: d.borderColor }}
-                />
-              </div>
-            </div>
+            <AnimatedProgressBar
+              value={d.progress}
+              fillColor={d.borderColor}
+              showLabel
+              labelClassName="text-navy-700"
+            />
             <p className="mt-2 text-[10px] text-slate-500">{d.taskCount} tasks</p>
           </div>
         </div>
