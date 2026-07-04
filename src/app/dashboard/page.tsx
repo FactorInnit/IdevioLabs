@@ -15,6 +15,7 @@ import { computeCompanyMetrics } from "@/lib/founder-metrics";
 interface ProjectSummary {
   id: string;
   name: string;
+  logoUrl?: string | null;
   description: string | null;
   progress: number;
   budget: number | null;

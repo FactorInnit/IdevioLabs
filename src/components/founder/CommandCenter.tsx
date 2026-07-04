@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 interface ProjectSummary {
   id: string;
   name: string;
+  logoUrl?: string | null;
   description: string | null;
   progress: number;
   budget: number | null;

@@ -4,12 +4,15 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowUpRight,
+  Loader2,
   Map,
+  Pencil,
   Shield,
   Swords,
   TrendingUp,
   Workflow,
 } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { GlassCard } from "./GlassCard";
 import { AnimatedGauge, ScoreBar } from "./AnimatedGauge";
 import {
@@ -23,6 +26,7 @@ import { cn } from "@/lib/utils";
 interface CompanyCardProps {
   id: string;
   name: string;
+  logoUrl?: string | null;
   description: string | null;
   progress: number;
   budget: number | null;
@@ -52,6 +56,7 @@ const QUICK_LINKS = [
 export function CompanyCard({
   id,
   name,
+  logoUrl,
   description,
   progress,
   budget,
@@ -60,9 +65,17 @@ export function CompanyCard({
   featured = false,
   priority = false,
 }: CompanyCardProps) {
+  const [displayName, setDisplayName] = useState(name);
+  const [displayLogo, setDisplayLogo] = useState<string | null>(logoUrl ?? null);
+
+  useEffect(() => {
+    setDisplayName(name);
+    setDisplayLogo(logoUrl ?? null);
+  }, [name, logoUrl]);
+
   const metrics = computeCompanyMetrics({
     id,
-    name,
+    name: displayName,
     progress,
     budget,
     updatedAt,
@@ -96,7 +109,15 @@ export function CompanyCard({
       {featured ? (
         <div className="relative grid lg:grid-cols-[1fr_auto]">
           <Link href={`/company/${id}?module=workspace`} className="block p-8 lg:p-10">
-            <FeaturedHeader name={name} description={description} metrics={metrics} />
+            <FeaturedHeader
+              projectId={id}
+              name={displayName}
+              logoUrl={displayLogo}
+              description={description}
+              metrics={metrics}
+              onNameChange={setDisplayName}
+              onLogoChange={setDisplayLogo}
+            />
             <FeaturedMetrics metrics={metrics} progress={progress} updatedAt={updatedAt} />
           </Link>
           <div className="flex flex-col justify-between border-t border-navy-900/6 bg-navy-50/30 p-6 lg:min-w-[280px] lg:border-l lg:border-t-0">
@@ -110,7 +131,7 @@ export function CompanyCard({
               <p className="mt-1 text-xs text-slate-500">{metrics.readinessLabel}</p>
               <CompanyVisionQuote
                 projectId={id}
-                projectName={name}
+                projectName={displayName}
                 description={description}
               />
             </div>
@@ -120,7 +141,15 @@ export function CompanyCard({
       ) : (
         <>
           <Link href={`/company/${id}?module=workspace`} className="relative block">
-            <CardHeader name={name} description={description} metrics={metrics} />
+            <CardHeader
+              projectId={id}
+              name={displayName}
+              logoUrl={displayLogo}
+              description={description}
+              metrics={metrics}
+              onNameChange={setDisplayName}
+              onLogoChange={setDisplayLogo}
+            />
             <CardMetrics metrics={metrics} progress={progress} updatedAt={updatedAt} />
           </Link>
           <QuickLinks id={id} className="relative mt-4 border-t border-navy-900/6 pt-4" compact />
@@ -131,19 +160,31 @@ export function CompanyCard({
 }
 
 function FeaturedHeader({
+  projectId,
   name,
+  logoUrl,
   description,
   metrics,
+  onNameChange,
+  onLogoChange,
 }: {
+  projectId: string;
   name: string;
+  logoUrl: string | null;
   description: string | null;
   metrics: ReturnType<typeof computeCompanyMetrics>;
+  onNameChange: (name: string) => void;
+  onLogoChange: (logoUrl: string | null) => void;
 }) {
   return (
     <div className="flex items-start gap-5">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-900 to-navy-600 text-xl font-bold text-white shadow-lg shadow-navy-900/30">
-        {name.charAt(0).toUpperCase()}
-      </div>
+      <CompanyAvatar
+        projectId={projectId}
+        name={name}
+        logoUrl={logoUrl}
+        onLogoChange={onLogoChange}
+        size="lg"
+      />
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-navy-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
@@ -154,9 +195,12 @@ function FeaturedHeader({
             {metrics.launchProbability}% launch prob.
           </span>
         </div>
-        <h3 className="font-display text-2xl font-bold text-navy-900 transition group-hover:text-navy-700">
-          {name}
-        </h3>
+        <EditableCompanyName
+          projectId={projectId}
+          name={name}
+          onNameChange={onNameChange}
+          className="font-display text-2xl font-bold text-navy-900 transition group-hover:text-navy-700"
+        />
         {description && (
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">{description}</p>
         )}
@@ -167,16 +211,32 @@ function FeaturedHeader({
 }
 
 function CardHeader({
+  projectId,
   name,
+  logoUrl,
   description,
   metrics,
+  onNameChange,
+  onLogoChange,
 }: {
+  projectId: string;
   name: string;
+  logoUrl: string | null;
   description: string | null;
   metrics: ReturnType<typeof computeCompanyMetrics>;
+  onNameChange: (name: string) => void;
+  onLogoChange: (logoUrl: string | null) => void;
 }) {
   return (
     <div className="relative flex items-start justify-between gap-4 pl-3">
+      <CompanyAvatar
+        projectId={projectId}
+        name={name}
+        logoUrl={logoUrl}
+        onLogoChange={onLogoChange}
+        size="sm"
+        className="mt-0.5"
+      />
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
           <span className="rounded-full bg-navy-900/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy-700">
@@ -187,14 +247,228 @@ function CardHeader({
             {metrics.launchProbability}%
           </span>
         </div>
-        <h3 className="font-display text-lg font-bold text-navy-900 transition group-hover:text-navy-700">
-          {name}
-        </h3>
+        <EditableCompanyName
+          projectId={projectId}
+          name={name}
+          onNameChange={onNameChange}
+          className="font-display text-lg font-bold text-navy-900 transition group-hover:text-navy-700"
+        />
         {description && (
           <p className="mt-1 line-clamp-2 text-sm text-slate-500">{description}</p>
         )}
       </div>
       <ArrowUpRight className="h-5 w-5 shrink-0 text-slate-300 transition group-hover:text-navy-600" />
+    </div>
+  );
+}
+
+function CompanyAvatar({
+  projectId,
+  name,
+  logoUrl,
+  onLogoChange,
+  size,
+  className,
+}: {
+  projectId: string;
+  name: string;
+  logoUrl: string | null;
+  onLogoChange: (logoUrl: string | null) => void;
+  size: "sm" | "lg";
+  className?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      window.alert("Please choose an image file (PNG, JPG, or similar).");
+      return;
+    }
+
+    if (file.size > 512 * 1024) {
+      window.alert("Logo must be 512 KB or smaller.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== "string") return;
+
+      setUploading(true);
+      try {
+        const res = await fetch(`/api/projects/${projectId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ logoUrl: dataUrl }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          window.alert(
+            typeof data.error === "string" ? data.error : "Could not upload logo."
+          );
+          return;
+        }
+        onLogoChange(dataUrl);
+      } finally {
+        setUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const sizeClasses =
+    size === "lg"
+      ? "h-14 w-14 rounded-2xl text-xl"
+      : "h-10 w-10 rounded-xl text-sm";
+
+  return (
+    <>
+      <button
+        type="button"
+        title="Upload logo"
+        aria-label="Upload company logo"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!uploading) inputRef.current?.click();
+        }}
+        className={cn(
+          "relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-navy-900 to-navy-600 font-bold text-white shadow-lg shadow-navy-900/30 transition hover:ring-2 hover:ring-navy-400/50",
+          sizeClasses,
+          className
+        )}
+      >
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          name.charAt(0).toUpperCase() || "?"
+        )}
+        {uploading && (
+          <span className="absolute inset-0 flex items-center justify-center bg-navy-900/60">
+            <Loader2 className="h-4 w-4 animate-spin text-white" />
+          </span>
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </>
+  );
+}
+
+function EditableCompanyName({
+  projectId,
+  name,
+  onNameChange,
+  className,
+}: {
+  projectId: string;
+  name: string;
+  onNameChange: (name: string) => void;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!editing) setDraft(name);
+  }, [name, editing]);
+
+  async function save() {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === name) {
+      setDraft(name);
+      setEditing(false);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        window.alert(
+          typeof data.error === "string" ? data.error : "Could not rename company."
+        );
+        setDraft(name);
+        setEditing(false);
+        return;
+      }
+      onNameChange(trimmed);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void save();
+    }
+    if (event.key === "Escape") {
+      setDraft(name);
+      setEditing(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <input
+        value={draft}
+        autoFocus
+        disabled={saving}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => void save()}
+        onKeyDown={handleKeyDown}
+        onClick={(event) => event.stopPropagation()}
+        className={cn(
+          "w-full min-w-0 rounded-lg border border-navy-300 bg-white px-2 py-1 outline-none ring-navy-400 focus:ring-2",
+          className
+        )}
+      />
+    );
+  }
+
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <h3 className={cn("min-w-0 truncate", className)}>{name}</h3>
+      <button
+        type="button"
+        title="Edit company name"
+        aria-label="Edit company name"
+        disabled={saving}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setDraft(name);
+          setEditing(true);
+        }}
+        className="shrink-0 rounded-md p-1 text-slate-400 transition hover:bg-navy-900/5 hover:text-navy-700"
+      >
+        {saving ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Pencil className="h-3.5 w-3.5" />
+        )}
+      </button>
     </div>
   );
 }
