@@ -1,3 +1,8 @@
+import {
+  FREE_AI_MESSAGES_PER_MONTH,
+  FREE_VALIDATOR_RUNS_PER_MONTH,
+} from "@/lib/usage-constants";
+
 export type PlanId = "free" | "pro" | "ultra";
 
 export interface Plan {
@@ -31,6 +36,18 @@ export const PLAN_COMPARISON: PlanComparisonRow[] = [
   { label: "Step-by-step action plans", free: "✓", pro: "✓", ultra: "✓" },
   { label: "Budget-aware tool picks", free: "✓", pro: "✓", ultra: "✓" },
   { label: "Idevio AI assistant", free: "Basic", pro: "Unlimited", ultra: "Strategy mode" },
+  {
+    label: "AI coach messages",
+    free: `${FREE_AI_MESSAGES_PER_MONTH}/mo`,
+    pro: "Unlimited",
+    ultra: "Unlimited",
+  },
+  {
+    label: "Validator deep reports",
+    free: `${FREE_VALIDATOR_RUNS_PER_MONTH}/mo`,
+    pro: "Unlimited",
+    ultra: "Unlimited",
+  },
   { label: "Daily reminders", free: "✓", pro: "✓", ultra: "✓" },
   { label: "Daily habits & planner", free: "—", pro: "✓", ultra: "✓" },
   { label: "Competitor intelligence", free: "—", pro: "✓", ultra: "✓" },
@@ -38,7 +55,7 @@ export const PLAN_COMPARISON: PlanComparisonRow[] = [
   { label: "Progress tracking", free: "✓", pro: "✓", ultra: "✓" },
   { label: "Team collaborators", free: "1", pro: "Up to 5", ultra: "Unlimited" },
   { label: "Invite teammates", free: "✓", pro: "✓", ultra: "✓" },
-  { label: "Export to PDF", free: "—", pro: "✓", ultra: "✓" },
+  { label: "Investor export (PDF)", free: "—", pro: "✓", ultra: "✓" },
   { label: "Custom branding", free: "—", pro: "—", ultra: "✓" },
   { label: "Priority support", free: "—", pro: "—", ultra: "✓" },
 ];
@@ -59,13 +76,14 @@ export const PLANS: Plan[] = [
       "Invite 1 teammate",
       "Full workflow map & action plans",
       "Budget-aware recommendations",
-      "Basic Idevio assistant",
+      `${FREE_AI_MESSAGES_PER_MONTH} AI coach messages per month`,
+      `${FREE_VALIDATOR_RUNS_PER_MONTH} validator run per month`,
       "Daily reminders & progress tracking",
     ],
     notIncluded: [
       "No second startup",
       "No daily habits, competitors, or CEO review",
-      "No PDF export",
+      "No investor PDF export",
     ],
   },
   {
@@ -85,8 +103,9 @@ export const PLANS: Plan[] = [
       "Up to 10 startup roadmaps",
       "Invite up to 5 collaborators",
       "Unlimited Idevio assistant chats",
+      "Unlimited validator runs",
       "Daily habits, competitors & CEO review",
-      "Export roadmaps to PDF",
+      "Investor export (PDF)",
       "Everything in Free",
     ],
     notIncluded: ["No unlimited roadmaps", "No custom branding"],

@@ -3,15 +3,27 @@ import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { PricingSection } from "@/components/PricingSection";
+import {
+  FREE_AI_MESSAGES_PER_MONTH,
+  FREE_VALIDATOR_RUNS_PER_MONTH,
+} from "@/lib/usage-constants";
 
 const FAQS = [
   {
     q: "Is the Free plan really free?",
-    a: "Yes. You can create and fully build one startup roadmap for free, forever — no credit card required.",
+    a: "Yes. You get one full startup roadmap — canvas, validator, finance, roadmap, and team chat — with no credit card required.",
   },
   {
-    q: "What happens when I hit the Free limit?",
-    a: "The Free plan includes 1 startup. To create more, or to invite collaborators, upgrade to Pro or Ultra.",
+    q: "What's included on Free vs Pro?",
+    a: "Free includes your first company, basic AI coach usage, and core workspace tools. Pro unlocks daily habits, competitor intelligence, weekly CEO review, investor PDF exports, unlimited AI coach chats, unlimited validator runs, and up to 10 companies.",
+  },
+  {
+    q: "What are the Free plan usage limits?",
+    a: `Free includes ${FREE_AI_MESSAGES_PER_MONTH} AI coach messages and ${FREE_VALIDATOR_RUNS_PER_MONTH} validator deep report per month. Your dashboard shows remaining usage. Pro removes these caps.`,
+  },
+  {
+    q: "What happens when I hit a Free limit?",
+    a: "You'll see an upgrade prompt in the app. You can still use everything else on Free — only that limit resets next month (or unlocks immediately on Pro).",
   },
   {
     q: "What do collaborators get?",
@@ -41,8 +53,8 @@ export default function PricingPage() {
               <span className="text-gradient-light">with your startup</span>
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-white/60">
-              Start free with one roadmap. Upgrade when you&apos;re ready to build
-              more startups or bring your team along.
+              Start free with one roadmap. Upgrade to Pro for habits, competitors, CEO review,
+              investor exports, and unlimited AI — or go Ultra to scale without limits.
             </p>
           </div>
         </section>
@@ -90,7 +102,7 @@ export default function PricingPage() {
                 Ready to build your roadmap?
               </h3>
               <p className="max-w-md text-sm text-white/60">
-                Join 12,400+ founders planning smarter with Idevio.
+                Start free — upgrade when habits, competitors, and exports become part of your weekly rhythm.
               </p>
               <Link
                 href="/#get-started"
