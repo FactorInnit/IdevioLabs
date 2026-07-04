@@ -233,6 +233,11 @@ body {
     animation: none;
   }
 
+  .command-center-star-twinkle,
+  .command-center-shooting-star {
+    animation: none;
+  }
+
   .card-3d-lift:hover,
   .step-card-3d:hover,
   .glass-card:hover {
@@ -365,4 +370,36 @@ body {
 @keyframes dashboard-orb {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50% { opacity: 0.85; transform: scale(1.08); }
+}
+
+.command-center-star {
+  position: absolute;
+  border-radius: 9999px;
+  background: white;
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.35);
+}
+
+.command-center-star-twinkle {
+  animation: command-center-twinkle ease-in-out infinite;
+}
+
+@keyframes command-center-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+.command-center-shooting-star {
+  position: absolute;
+  width: 64px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), transparent);
+  opacity: 0;
+  transform: rotate(-24deg);
+  animation: command-center-shoot 12s ease-in-out infinite;
+}
+
+@keyframes command-center-shoot {
+  0%, 88%, 100% { opacity: 0; transform: rotate(-24deg) translateX(0); }
+  90% { opacity: 0.7; transform: rotate(-24deg) translateX(-12px); }
+  95% { opacity: 0; transform: rotate(-24deg) translateX(-48px); }
 }

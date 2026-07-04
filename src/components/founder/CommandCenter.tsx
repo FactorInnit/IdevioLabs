@@ -21,6 +21,7 @@ import { GlassCard } from "./GlassCard";
 import { AnimatedGauge } from "./AnimatedGauge";
 import { CompanyCard } from "./CompanyCard";
 import { StreakBadge } from "./StreakBadge";
+import { StarField } from "./StarField";
 import { UsageLimitsPanel } from "./UsageLimitsPanel";
 import { computeCompanyMetrics } from "@/lib/founder-metrics";
 import { companyModuleHref } from "@/lib/founder-nav";
@@ -86,6 +87,7 @@ export function CommandCenterHero({
 }) {
   return (
     <section className="relative overflow-hidden">
+      <StarField />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_0%_-20%,rgba(74,120,180,0.35),transparent_50%)]" />
       <div className="pointer-events-none absolute -right-24 top-0 h-72 w-72 rounded-full bg-navy-400/20 blur-3xl dashboard-orb" />
       <div className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl dashboard-orb-delayed" />
