@@ -14,6 +14,7 @@ import {
   Sun,
   Target,
   TrendingUp,
+  Users,
   Workflow,
   Zap,
 } from "lucide-react";
@@ -439,6 +440,37 @@ export function CommandCenter({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mx-auto max-w-7xl px-8 pb-16">
+        <GlassCard className="relative overflow-hidden p-8 lg:p-10" hover={false}>
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-navy-400/10 blur-3xl" />
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900/8 text-navy-700">
+                  <Users className="h-5 w-5" />
+                </div>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                  Coming soon
+                </span>
+              </div>
+              <h2 className="font-display text-2xl font-bold text-navy-900">Founder Community</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">
+                Publish your startups for other founders to discover — get help with funding,
+                hiring, scaling, and collaboration. A space to share ideas, connect, and build
+                together.
+              </p>
+            </div>
+            <Link
+              href="/community"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-2xl border border-navy-900/10 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition hover:border-navy-400/30 hover:bg-navy-50 lg:self-center"
+            >
+              Learn more
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </GlassCard>
       </section>
     </div>
   );

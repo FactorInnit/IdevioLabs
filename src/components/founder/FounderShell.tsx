@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, Crown, Lock, Newspaper, Sparkles, Zap } from "lucide-react";
+import { ChevronLeft, Crown, Lock, Newspaper, Sparkles, Users, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StreakBadge } from "@/components/founder/StreakBadge";
 import { UsageLimitsPanel } from "@/components/founder/UsageLimitsPanel";
@@ -33,7 +33,8 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   const isDashboard = pathname === "/dashboard";
   const isMotivation = pathname === "/motivation";
   const isNewsletter = pathname === "/newsletter";
-  const isPortfolioNav = isDashboard || isMotivation || isNewsletter;
+  const isCommunity = pathname === "/community";
+  const isPortfolioNav = isDashboard || isMotivation || isNewsletter || isCommunity;
   const isPricing = pathname === "/pricing";
   const showUpgrade = planId !== "ultra";
   const hasProAccess = canAccessProFeature(planId);
@@ -135,6 +136,21 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
               >
                 <Newspaper className={cn("h-4 w-4 shrink-0", isNewsletter && "text-navy-600")} />
                 Founder Brief
+              </Link>
+              <Link
+                href="/community"
+                className={cn(
+                  "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+                  isCommunity
+                    ? "sidebar-item-active font-semibold text-navy-900"
+                    : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
+                )}
+              >
+                <Users className={cn("h-4 w-4 shrink-0", isCommunity && "text-navy-600")} />
+                <span className="min-w-0 flex-1 truncate">Community</span>
+                <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800">
+                  Soon
+                </span>
               </Link>
               <Link
                 href="/pricing"
