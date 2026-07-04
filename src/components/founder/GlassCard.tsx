@@ -27,10 +27,10 @@ export function GlassCard({
         dark
           ? "glass-card-dark text-white"
           : solid
-            ? "border border-navy-900/10 bg-white shadow-2xl"
+            ? "border border-navy-900/10 bg-white shadow-2xl dark:bg-[#0f1829]"
             : hover
               ? "glass-card"
-              : "border border-white/40 bg-white/60",
+              : "border border-white/40 bg-white/60 dark:border-white/10 dark:bg-[#0f1829]/80",
         onClick && "cursor-pointer",
         className
       )}

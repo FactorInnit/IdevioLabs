@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, Crown, Lock, Newspaper, Sparkles, Users, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { StreakBadge } from "@/components/founder/StreakBadge";
 import { UsageLimitsPanel } from "@/components/founder/UsageLimitsPanel";
 import { useAuth } from "@/lib/auth-context";
@@ -169,6 +170,9 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
                   <UsageLimitsPanel planId={planId} compact />
                 </div>
               )}
+              <div className="mt-3 px-1">
+                <ThemeToggle variant="sidebar" className="w-full" />
+              </div>
             </>
           ) : (
             <>
@@ -179,6 +183,9 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
                 </p>
               </div>
               {FOUNDER_NAV_PRO.map(renderNavItem)}
+              <div className="mt-3 px-1">
+                <ThemeToggle variant="sidebar" className="w-full" />
+              </div>
             </>
           )}
         </nav>

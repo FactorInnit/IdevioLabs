@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Crown, LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/lib/auth-context";
 import { usePlan } from "@/lib/usePlan";
 import { COMPANY_NAME, PRODUCT_NAME } from "@/lib/brand";
@@ -39,6 +40,7 @@ export function AppHeader() {
         </Link>
 
         <nav className="flex items-center gap-0.5">
+          <ThemeToggle variant="header" className="mr-1" />
           <Link
             href="/pricing"
             className="rounded-lg px-3.5 py-2 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
