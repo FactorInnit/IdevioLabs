@@ -70,9 +70,11 @@ function formatLimit(max: number): string {
 export function TeamModule({
   projectId,
   projectName,
+  isOwner = false,
 }: {
   projectId: string;
   projectName: string;
+  isOwner?: boolean;
 }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<TeamMessage[]>([]);
@@ -80,7 +82,7 @@ export function TeamModule({
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [limits, setLimits] = useState<TeamLimits | null>(null);
-  const [canManageTeam, setCanManageTeam] = useState(false);
+  const [canManageTeam, setCanManageTeam] = useState(isOwner);
   const [canInvite, setCanInvite] = useState(false);
   const [dbReady, setDbReady] = useState(true);
   const [text, setText] = useState("");
@@ -104,7 +106,7 @@ export function TeamModule({
         setInvites(data.invites ?? []);
         setLimits(data.limits ?? null);
         setDbReady(data.dbReady !== false);
-        setCanManageTeam(Boolean(data.access?.canManageTeam));
+        setCanManageTeam(isOwner || Boolean(data.access?.canManageTeam));
         setCanInvite(Boolean(data.access?.canInvite));
       }
     } catch {
@@ -112,7 +114,7 @@ export function TeamModule({
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, isOwner]);
 
   useEffect(() => {
     load();
@@ -219,14 +221,17 @@ export function TeamModule({
         </div>
       </GlassCard>
 
-      {!dbReady && (
+      {!dbReady && canManageTeam && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Team invites need a quick database update. Run the team migration SQL in Turso (see
-          project migration file), then refresh.
+          <p className="font-semibold">One-time database setup for team invites</p>
+          <p className="mt-1">
+            In Turso → <strong>idevio</strong> → <strong>Edit Data</strong>, run the team migration
+            SQL file, then refresh this page.
+          </p>
         </div>
       )}
 
-      {canManageTeam && dbReady && (
+      {canManageTeam && (
         <GlassCard className="p-5" hover={false}>
           <div className="flex items-center gap-2">
             <UserPlus className="h-5 w-5 text-navy-700" />
@@ -244,20 +249,22 @@ export function TeamModule({
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="teammate@email.com"
-                className="w-full rounded-xl border border-navy-900/10 py-2.5 pl-10 pr-3 text-sm"
+                disabled={!dbReady}
+                className="w-full rounded-xl border border-navy-900/10 py-2.5 pl-10 pr-3 text-sm disabled:bg-slate-50"
               />
             </div>
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as MemberRole)}
-              className="rounded-xl border border-navy-900/10 px-3 py-2.5 text-sm"
+              disabled={!dbReady}
+              className="rounded-xl border border-navy-900/10 px-3 py-2.5 text-sm disabled:bg-slate-50"
             >
               <option value="editor">Can edit</option>
               <option value="viewer">View only</option>
             </select>
             <button
               onClick={invite}
-              disabled={inviting || !inviteEmail.trim() || !canInvite}
+              disabled={inviting || !inviteEmail.trim() || !canInvite || !dbReady}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -265,7 +272,13 @@ export function TeamModule({
             </button>
           </div>
 
-          {!canInvite && limits && (
+          {!dbReady && (
+            <p className="mt-3 text-xs font-medium text-amber-700">
+              Complete the Turso migration above before sending invites.
+            </p>
+          )}
+
+          {dbReady && !canInvite && limits && (
             <p className="mt-3 text-xs font-medium text-amber-700">
               You&apos;ve reached your collaborator limit.{" "}
               <Link href="/pricing" className="underline">

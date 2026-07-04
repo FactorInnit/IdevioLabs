@@ -146,7 +146,11 @@ function CompanyWorkspaceContent({
               <CalendarModule projectId={project.id} projectName={project.name} />
             )}
             {module === "team" && (
-              <TeamModule projectId={project.id} projectName={project.name} />
+              <TeamModule
+                projectId={project.id}
+                projectName={project.name}
+                isOwner={access.isOwner}
+              />
             )}
             {!IMPLEMENTED_MODULES.has(module) && <ComingSoonModule module={module} />}
           </div>
