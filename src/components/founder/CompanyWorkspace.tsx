@@ -17,6 +17,7 @@ import { RiskAnalysisModule } from "@/components/founder/modules/RiskAnalysisMod
 import { TodayPanel } from "@/components/founder/modules/TodayPanel";
 import { CeoReviewModule } from "@/components/founder/modules/CeoReviewModule";
 import { ChatModule } from "@/components/founder/modules/ChatModule";
+import { ExportModule } from "@/components/founder/modules/ExportModule";
 import { ProFeatureGate } from "@/components/founder/ProFeatureGate";
 import { PRO_MODULE_COPY } from "@/lib/pro-features";
 import { ProgressTimeline } from "@/components/ProgressTimeline";
