@@ -335,6 +335,20 @@ body {
   background-size: 24px 24px;
 }
 
+.canvas-workspace-flow {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(74, 120, 180, 0.06), transparent 55%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.canvas-workspace-flow .react-flow__pane {
+  cursor: grab;
+}
+
+.canvas-workspace-flow .react-flow__pane:active {
+  cursor: grabbing;
+}
+
 .sidebar-item-active {
   background: linear-gradient(90deg, rgba(74, 120, 180, 0.15), transparent);
   border-left: 2px solid var(--navy-500);

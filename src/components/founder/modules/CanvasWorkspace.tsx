@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Background,
+  BackgroundVariant,
   Controls,
   MarkerType,
   MiniMap,
@@ -348,6 +349,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
 
       <GlassCard className="h-[calc(100vh-14rem)] overflow-hidden p-0" hover={false}>
         <ReactFlow
+          className="canvas-workspace-flow"
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
@@ -367,7 +369,26 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           maxZoom={1.5}
           proOptions={{ hideAttribution: true }}
         >
-          <Background gap={24} color="rgba(8,26,58,0.05)" />
+          <Background
+            id="major-grid"
+            variant={BackgroundVariant.Lines}
+            gap={128}
+            size={1}
+            color="rgba(74, 120, 180, 0.07)"
+          />
+          <Background
+            variant={BackgroundVariant.Lines}
+            gap={32}
+            size={1}
+            color="rgba(74, 120, 180, 0.1)"
+          />
+          <Background
+            id="canvas-dots"
+            variant={BackgroundVariant.Dots}
+            gap={32}
+            size={1.5}
+            color="rgba(74, 120, 180, 0.22)"
+          />
           <Controls />
           <MiniMap
             nodeColor="#081a3a"
