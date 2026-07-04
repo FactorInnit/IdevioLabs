@@ -399,8 +399,16 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
       </GlassCard>
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/40 p-4 sm:items-center">
-          <GlassCard className="max-h-[85vh] w-full max-w-lg overflow-y-auto p-6" hover={false}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/55 p-4 backdrop-blur-[2px] sm:items-center"
+          onClick={() => setSelectedId(null)}
+        >
+          <div className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <GlassCard
+              solid
+              className="max-h-[85vh] w-full overflow-y-auto p-6"
+              hover={false}
+            >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase text-navy-500">
@@ -492,6 +500,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
               Remove block
             </button>
           </GlassCard>
+          </div>
         </div>
       )}
     </div>
