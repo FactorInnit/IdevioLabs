@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getProject } from "@/lib/projects";
-import { requireProjectEdit } from "@/lib/project-access";
+import { deleteProject, getProject } from "@/lib/projects";
+import { requireProjectEdit, requireProjectOwner } from "@/lib/project-access";
 import { prisma } from "@/lib/prisma";
 
 const MAX_NAME_LENGTH = 120;
@@ -25,10 +25,28 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
   const { id } = await params;
 
-  await prisma.project.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  try {
+    await requireProjectOwner(user.id, id);
+  } catch {
+    return NextResponse.json(
+      { error: "Only the company owner can delete this startup." },
+      { status: 403 }
+    );
+  }
+
+  try {
+    await deleteProject(id);
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Failed to delete company." }, { status: 500 });
+  }
 }
 
 export async function PATCH(

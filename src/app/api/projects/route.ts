@@ -9,7 +9,11 @@ export async function GET() {
   try {
     const userId = await getCurrentUserId();
     const projects = await listProjects(userId);
-    return NextResponse.json(projects);
+    const payload = projects.map((project) => ({
+      ...project,
+      isOwner: Boolean(userId && project.userId === userId),
+    }));
+    return NextResponse.json(payload);
   } catch (error) {
     console.error("List projects error:", error);
     return NextResponse.json(

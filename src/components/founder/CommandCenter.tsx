@@ -39,6 +39,7 @@ interface ProjectSummary {
   budget: number | null;
   updatedAt: string;
   nodes: { id: string; progress: number; category: string }[];
+  isOwner?: boolean;
 }
 
 interface CommandCenterProps {
@@ -48,6 +49,7 @@ interface CommandCenterProps {
   projects: ProjectSummary[];
   avgHealth: number;
   onNewCompany: () => void;
+  onDeleteCompany: (projectId: string) => void;
 }
 
 function timeGreeting(): string {
@@ -339,6 +341,7 @@ export function CommandCenter({
   projects,
   avgHealth,
   onNewCompany,
+  onDeleteCompany,
 }: CommandCenterProps) {
   const avgProgress =
     projects.length > 0
@@ -436,7 +439,14 @@ export function CommandCenter({
             )}
           >
             {projects.map((p, i) => (
-              <CompanyCard key={p.id} {...p} featured={projects.length === 1} priority={i === 0} />
+              <CompanyCard
+                key={p.id}
+                {...p}
+                featured={projects.length === 1}
+                priority={i === 0}
+                isOwner={p.isOwner}
+                onDeleted={() => onDeleteCompany(p.id)}
+              />
             ))}
           </div>
         )}

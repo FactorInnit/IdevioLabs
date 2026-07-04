@@ -294,3 +294,7 @@ export async function createEdge(
 export async function deleteEdge(edgeId: string) {
   return prisma.workflowEdge.delete({ where: { id: edgeId } });
 }
+
+export async function deleteProject(projectId: string) {
+  return prisma.project.delete({ where: { id: projectId } });
+}

@@ -9,10 +9,11 @@ import {
   Pencil,
   Shield,
   Swords,
+  Trash2,
   TrendingUp,
   Workflow,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { GlassCard } from "./GlassCard";
 import { AnimatedGauge, ScoreBar } from "./AnimatedGauge";
 import {
@@ -44,6 +45,8 @@ interface CompanyCardProps {
   progressLogCount?: number;
   featured?: boolean;
   priority?: boolean;
+  isOwner?: boolean;
+  onDeleted?: () => void;
 }
 
 const QUICK_LINKS = [
@@ -64,6 +67,8 @@ export function CompanyCard({
   nodes,
   featured = false,
   priority = false,
+  isOwner = false,
+  onDeleted,
 }: CompanyCardProps) {
   const [displayName, setDisplayName] = useState(name);
   const [displayLogo, setDisplayLogo] = useState<string | null>(logoUrl ?? null);
@@ -104,6 +109,14 @@ export function CompanyCard({
           healthColor
         )}
       />
+      {isOwner && onDeleted && (
+        <DeleteCompanyButton
+          projectId={id}
+          name={displayName}
+          onDeleted={onDeleted}
+          className={featured ? "right-6 top-6" : "right-4 top-4"}
+        />
+      )}
       <div className="founder-shimmer pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
 
       {featured ? (
@@ -156,6 +169,69 @@ export function CompanyCard({
         </>
       )}
     </GlassCard>
+  );
+}
+
+function DeleteCompanyButton({
+  projectId,
+  name,
+  onDeleted,
+  className,
+}: {
+  projectId: string;
+  name: string;
+  onDeleted: () => void;
+  className?: string;
+}) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (
+      !window.confirm(
+        `Delete "${name}"?\n\nThis permanently removes the canvas, roadmap, habits, and all company data. This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.alert(
+          typeof data.error === "string" ? data.error : "Could not delete company."
+        );
+        return;
+      }
+      onDeleted();
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      title="Delete company"
+      aria-label={`Delete ${name}`}
+      disabled={deleting}
+      onClick={handleDelete}
+      className={cn(
+        "absolute z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-red-200/80 bg-white/95 text-red-600 opacity-0 shadow-sm transition hover:border-red-300 hover:bg-red-50 group-hover:opacity-100",
+        deleting && "opacity-100",
+        className
+      )}
+    >
+      {deleting ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : (
+        <Trash2 className="h-3.5 w-3.5" />
+      )}
+    </button>
   );
 }
 

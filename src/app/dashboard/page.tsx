@@ -21,6 +21,7 @@ interface ProjectSummary {
   budget: number | null;
   updatedAt: string;
   nodes: { id: string; progress: number; category: string }[];
+  isOwner?: boolean;
 }
 
 export default function DashboardPage() {
@@ -172,6 +173,9 @@ function DashboardContent() {
           projects={projects}
           avgHealth={avgHealth}
           onNewCompany={handleNew}
+          onDeleteCompany={(projectId) =>
+            setProjects((prev) => prev.filter((p) => p.id !== projectId))
+          }
         />
       )}
 
