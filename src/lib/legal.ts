@@ -194,7 +194,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "your-content",
     title: "6. Your content",
     paragraphs: [
-      "You retain ownership of content you submit to the Service ("User Content").",
+      'You retain ownership of content you submit to the Service ("User Content").',
       "You grant us a worldwide, non-exclusive license to host, store, reproduce, process, and display User Content only as needed to operate and improve the Service, including providing AI features you request.",
       "You represent that you have the rights needed to submit User Content and that it does not violate these Terms or applicable law.",
     ],
