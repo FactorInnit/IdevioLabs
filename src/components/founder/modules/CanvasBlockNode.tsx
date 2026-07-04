@@ -24,7 +24,18 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
 
   return (
     <>
-      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-navy-400 !bg-white" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className="!h-2.5 !w-2.5 !border-navy-400 !bg-white"
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        className="!h-2.5 !w-2.5 !border-navy-400 !bg-white"
+      />
       <div
         className={`min-w-[220px] max-w-[260px] rounded-2xl border-2 p-4 shadow-lg transition ${
           selected ? "ring-2 ring-navy-700 ring-offset-2" : ""
@@ -69,7 +80,18 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
           </div>
         </div>
       </div>
-      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-navy-400 !bg-white" />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        className="!h-2.5 !w-2.5 !border-navy-400 !bg-white"
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        className="!h-2.5 !w-2.5 !border-navy-400 !bg-white"
+      />
     </>
   );
 }

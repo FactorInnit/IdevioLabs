@@ -8,10 +8,13 @@ import {
   MarkerType,
   MiniMap,
   ReactFlow,
+  addEdge,
   useEdgesState,
   useNodesState,
+  type Connection,
   type Edge,
   type Node,
+  type OnConnect,
   type OnNodeDrag,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -135,24 +138,26 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   }, [orderedNodes, meta]);
 
   const flowEdges: Edge[] = useMemo(() => {
+    const styled = (id: string, source: string, target: string, dashed = false): Edge => ({
+      id,
+      source,
+      target,
+      animated: !dashed,
+      style: {
+        stroke: dashed ? "#94a3b8" : "#4a78b4",
+        strokeWidth: 2,
+        strokeDasharray: dashed ? "6 4" : undefined,
+      },
+      markerEnd: { type: MarkerType.ArrowClosed, color: dashed ? "#94a3b8" : "#4a78b4" },
+    });
+
     if (project.edges.length > 0) {
-      return project.edges.map((e) => ({
-        id: e.id,
-        source: e.sourceId,
-        target: e.targetId,
-        animated: true,
-        style: { stroke: "#4a78b4", strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#4a78b4" },
-      }));
+      return project.edges.map((e) => styled(e.id, e.sourceId, e.targetId));
     }
-    return orderedNodes.slice(0, -1).map((node, i) => ({
-      id: `seq-${node.id}`,
-      source: node.id,
-      target: orderedNodes[i + 1].id,
-      animated: true,
-      style: { stroke: "#081a3a", strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#081a3a" },
-    }));
+
+    return orderedNodes.slice(0, -1).map((node, i) =>
+      styled(`seq-${node.id}`, node.id, orderedNodes[i + 1].id, true)
+    );
   }, [project.edges, orderedNodes]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
@@ -179,6 +184,51 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedId(node.id);
   }, []);
+
+  const onConnect: OnConnect = useCallback(
+    async (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+
+      const optimistic: Edge = {
+        id: `temp-${connection.source}-${connection.target}`,
+        source: connection.source,
+        target: connection.target,
+        animated: true,
+        style: { stroke: "#4a78b4", strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#4a78b4" },
+      };
+      setEdges((current) => addEdge(optimistic, current));
+
+      const res = await fetch(`/api/projects/${project.id}/edges`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: connection.source,
+          targetId: connection.target,
+        }),
+      });
+
+      if (!res.ok) {
+        setEdges((current) => current.filter((edge) => edge.id !== optimistic.id));
+        return;
+      }
+
+      router.refresh();
+    },
+    [project.id, router, setEdges]
+  );
+
+  const onEdgesDelete = useCallback(
+    async (deleted: Edge[]) => {
+      await Promise.all(
+        deleted
+          .filter((edge) => !edge.id.startsWith("seq-") && !edge.id.startsWith("temp-"))
+          .map((edge) => fetch(`/api/edges/${edge.id}`, { method: "DELETE" }))
+      );
+      router.refresh();
+    },
+    [router]
+  );
 
   const addBlock = async () => {
     if (!newTitle.trim()) return;
@@ -238,9 +288,12 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
     <div className="space-y-4">
       <GlassCard className="flex flex-wrap items-center justify-between gap-3 p-4" hover={false}>
         <p className="text-sm text-slate-600">
-          Your startup mind map —{" "}
-          <strong className="text-navy-900">drag blocks</strong> between sections on the canvas, click
-          to edit, colors &amp; notes. Blocks connect in execution sequence.
+          Your startup mind map — drag blocks between sections on the canvas, click to edit, and
+          add colors &amp; notes.{" "}
+          <strong className="text-navy-900">
+            Drag from one block&apos;s dot to another to connect them.
+          </strong>{" "}
+          Select a line and press Delete to remove it.
         </p>
         <div className="flex items-center gap-2">
           <span className="rounded-full bg-navy-900/8 px-3 py-1 text-xs font-semibold text-navy-800">
@@ -300,8 +353,14 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onEdgesDelete={onEdgesDelete}
           onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
+          nodesConnectable
+          edgesReconnectable
+          deleteKeyCode={["Backspace", "Delete"]}
+          connectionLineStyle={{ stroke: "#4a78b4", strokeWidth: 2 }}
           fitView
           fitViewOptions={{ padding: 0.25 }}
           minZoom={0.25}

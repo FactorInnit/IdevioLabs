@@ -185,7 +185,7 @@ function moduleTitle(module: FounderModuleId): string {
 function moduleDescription(module: FounderModuleId): string {
   const desc: Record<string, string> = {
     workspace:
-      "Your startup mind map — drag blocks between sections on one canvas, customize colors, and add notes.",
+      "Your startup mind map — drag blocks between sections on one canvas, connect blocks by dragging dot to dot, and customize colors and notes.",
     finance: "Budget breakdown, recommended tools, cost per block, and revenue projections.",
     roadmap:
       "Visual execution map with sequence, progress sliders, and a kanban board view.",
