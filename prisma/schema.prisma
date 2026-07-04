@@ -23,6 +23,20 @@ model User {
   projects                     Project[]
   projectMemberships           ProjectMember[]
   sentProjectInvites           ProjectInvite[] @relation("InvitedBy")
+  motivationSettings           UserMotivationSettings?
+}
+
+model UserMotivationSettings {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category          String   @default("random")
+  notifyTime        String   @default("08:00")
+  enabled           Boolean  @default(true)
+  browserNotify     Boolean  @default(true)
+  lastNotifiedDate  String?
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
 }
 
 model ProjectMember {

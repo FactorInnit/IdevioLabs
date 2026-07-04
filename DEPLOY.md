@@ -26,6 +26,8 @@
 
 > **Team invites:** After deploying, run the SQL in `prisma/migrations/20260704153000_add_team_invites/migration.sql` in your Turso **Edit Data** console (same database as `TURSO_DATABASE_URL`).
 
+> **Daily motivation:** Run `prisma/migrations/20260704170000_add_motivation/migration.sql` in the same Turso database.
+
 > **Database:** SQLite (`file:./dev.db`) works locally but **not on Vercel serverless**. For production, use [Turso](https://turso.tech) (free tier):
 >
 > 1. Create a database at turso.tech and copy `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`.

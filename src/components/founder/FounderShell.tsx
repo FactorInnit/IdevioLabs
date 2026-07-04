@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, Crown, Sparkles } from "lucide-react";
+import { ChevronLeft, Crown, Sparkles, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth-context";
 import { usePlan } from "@/lib/usePlan";
@@ -23,6 +23,8 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   const { plan, planId } = usePlan();
   const activeModule = (params.get("module") as FounderModuleId) || "workspace";
   const isDashboard = pathname === "/dashboard";
+  const isMotivation = pathname === "/motivation";
+  const isPortfolioNav = isDashboard || isMotivation;
   const isPricing = pathname === "/pricing";
   const showUpgrade = planId !== "ultra";
 
@@ -61,14 +63,31 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
         )}
 
         <nav className="flex-1 overflow-y-auto px-2 py-3">
-          {isDashboard ? (
+          {isPortfolioNav ? (
             <>
               <Link
                 href="/dashboard"
-                className="sidebar-item-active mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-900"
+                className={cn(
+                  "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+                  isDashboard
+                    ? "sidebar-item-active font-semibold text-navy-900"
+                    : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
+                )}
               >
-                <Sparkles className="h-4 w-4 text-navy-600" />
+                <Sparkles className={cn("h-4 w-4 shrink-0", isDashboard && "text-navy-600")} />
                 Command Center
+              </Link>
+              <Link
+                href="/motivation"
+                className={cn(
+                  "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+                  isMotivation
+                    ? "sidebar-item-active font-semibold text-navy-900"
+                    : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
+                )}
+              >
+                <Zap className={cn("h-4 w-4 shrink-0", isMotivation && "text-navy-600")} />
+                Daily Motivation
               </Link>
               <Link
                 href="/pricing"
