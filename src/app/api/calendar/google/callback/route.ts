@@ -64,8 +64,14 @@ export async function GET(request: Request) {
     return NextResponse.redirect(redirectUrl);
   } catch (err) {
     console.error("Google Calendar callback error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     const redirectUrl = new URL(parsed.next, parsed.origin);
-    redirectUrl.searchParams.set("calendar_error", "google_failed");
+    redirectUrl.searchParams.set(
+      "calendar_error",
+      message.includes("no such column") || message.includes("googleCalendar")
+        ? "db_setup"
+        : "google_failed"
+    );
     return NextResponse.redirect(redirectUrl);
   }
 }

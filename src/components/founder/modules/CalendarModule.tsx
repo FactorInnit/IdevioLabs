@@ -111,14 +111,6 @@ export function CalendarModule({
     }
   }, [projectId]);
 
-  useEffect(() => {
-    if (params.get("google_calendar") === "connected") {
-      setStatusMessage("Google Calendar connected successfully.");
-    } else if (params.get("calendar_error")) {
-      setStatusMessage("Could not connect Google Calendar. Try again.");
-    }
-  }, [params]);
-
   const loadGoogle = useCallback(async () => {
     const statusRes = await fetch("/api/calendar/google/status");
     if (!statusRes.ok) return;
@@ -159,6 +151,29 @@ export function CalendarModule({
   useEffect(() => {
     loadGoogle();
   }, [loadGoogle]);
+
+  useEffect(() => {
+    const err = params.get("calendar_error");
+    if (params.get("google_calendar") === "connected") {
+      setStatusMessage("Google Calendar connected successfully.");
+    } else if (err === "not_configured") {
+      setStatusMessage(
+        "Google Calendar is not configured on the server yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel."
+      );
+    } else if (err === "db_setup") {
+      setStatusMessage(
+        "Database needs a quick update. Run the Google Calendar SQL migration in Turso (see setup note below)."
+      );
+    } else if (err === "google_denied") {
+      setStatusMessage("Google Calendar connection was cancelled.");
+    } else if (err === "google_failed") {
+      setStatusMessage(
+        "Google Calendar connection failed. Check that the Calendar API is enabled and the redirect URI matches exactly."
+      );
+    } else if (err) {
+      setStatusMessage("Could not connect Google Calendar. Try again.");
+    }
+  }, [params]);
 
   const persist = useCallback(
     (next: CalendarEvent[]) => {
@@ -269,7 +284,15 @@ export function CalendarModule({
       </GlassCard>
 
       {statusMessage && (
-        <GlassCard className="border-emerald-200/50 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-800" hover={false}>
+        <GlassCard
+          className={cn(
+            "px-4 py-3 text-sm",
+            statusMessage.includes("successfully")
+              ? "border-emerald-200/50 bg-emerald-50/80 text-emerald-800"
+              : "border-amber-200/50 bg-amber-50/80 text-amber-900"
+          )}
+          hover={false}
+        >
           {statusMessage}
         </GlassCard>
       )}
@@ -308,9 +331,17 @@ export function CalendarModule({
                 <Link2 className="h-4 w-4" />
                 Connect Google Calendar
               </a>
-              <p className="mt-3 text-[11px] text-slate-400">
-                Enable Google Calendar API in Google Cloud and add redirect URI:{" "}
-                <code className="rounded bg-navy-900/5 px-1">/api/calendar/google/callback</code>
+              <p className="mt-3 text-[11px] leading-relaxed text-slate-400">
+                In Google Cloud: enable Calendar API and add this redirect URI exactly:{" "}
+                <code className="break-all rounded bg-navy-900/5 px-1">
+                  https://ideviolabs.com/api/calendar/google/callback
+                </code>
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Turso SQL:{" "}
+                <code className="rounded bg-navy-900/5 px-1">
+                  ALTER TABLE &quot;User&quot; ADD COLUMN &quot;googleCalendarRefreshToken&quot; TEXT;
+                </code>
               </p>
             </div>
           )}
