@@ -24,6 +24,7 @@ import { CredibilityStrip } from "@/components/landing/CredibilityStrip";
 import { AITrainingCredibility } from "@/components/landing/AITrainingCredibility";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { HowItWorks } from "@/components/landing/HowItWorks";
+import { CommunitySection } from "@/components/landing/CommunitySection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { PricingSection } from "@/components/PricingSection";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -458,6 +459,7 @@ export function PromptHero() {
         </div>
       </section>
 
+      <CommunitySection />
       <HowItWorks />
       <Testimonials />
 
