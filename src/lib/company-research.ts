@@ -1,12 +1,8 @@
-import OpenAI from "openai";
-import { getProject } from "@/lib/projects";
-import { parseNodeTasks } from "@/lib/project-utils";
-
-function getClient(): OpenAI | null {
-  const key = process.env.OPENAI_API_KEY?.trim();
-  if (!key || key.startsWith("sk-your")) return null;
-  return new OpenAI({ apiKey: key });
-}
+import { getOpenAIClient, OPENAI_MODEL } from "@/lib/openai";
+import {
+  formatProjectContextForPrompt,
+  loadProjectAiContext,
+} from "@/lib/project-ai-context";
 
 export interface ValidatorReport {
   overallScore: number;
@@ -47,26 +43,9 @@ export interface CompetitorsReport {
 }
 
 async function loadProjectContext(projectId: string) {
-  const project = await getProject(projectId);
-  if (!project) throw new Error("Project not found");
-
-  const blocks = project.nodes.map((n) => ({
-    category: n.category,
-    title: n.title,
-    description: n.description,
-    progress: n.progress,
-    tasks: parseNodeTasks(n.tasks).map((t) => t.title),
-  }));
-
-  return {
-    name: project.name,
-    prompt: project.prompt,
-    description: project.description,
-    budget: project.budget,
-    budgetNotes: project.budgetNotes,
-    progress: project.progress,
-    blocks,
-  };
+  const ctx = await loadProjectAiContext(projectId);
+  if (!ctx) throw new Error("Project not found");
+  return ctx;
 }
 
 function parseJson<T>(raw: string): T | null {
@@ -89,12 +68,13 @@ export async function generateValidatorReport(
   projectId: string
 ): Promise<ValidatorReport> {
   const ctx = await loadProjectContext(projectId);
-  const client = getClient();
+  const client = getOpenAIClient();
+  const contextText = formatProjectContextForPrompt(ctx);
 
   if (client) {
     try {
       const res = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: OPENAI_MODEL,
         response_format: { type: "json_object" },
         temperature: 0.4,
         messages: [
@@ -104,7 +84,7 @@ export async function generateValidatorReport(
           },
           {
             role: "user",
-            content: JSON.stringify(ctx, null, 2),
+            content: contextText,
           },
         ],
       });
@@ -127,12 +107,13 @@ export async function generateCompetitorsReport(
   projectId: string
 ): Promise<CompetitorsReport> {
   const ctx = await loadProjectContext(projectId);
-  const client = getClient();
+  const client = getOpenAIClient();
+  const contextText = formatProjectContextForPrompt(ctx);
 
   if (client) {
     try {
       const res = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: OPENAI_MODEL,
         response_format: { type: "json_object" },
         temperature: 0.4,
         messages: [
@@ -142,7 +123,7 @@ export async function generateCompetitorsReport(
           },
           {
             role: "user",
-            content: JSON.stringify(ctx, null, 2),
+            content: contextText,
           },
         ],
       });

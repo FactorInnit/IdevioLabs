@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { getOpenAIClient, OPENAI_MODEL } from "@/lib/openai";
 import { DEFAULT_NODE_LAYOUT } from "./constants";
 import { COMPANY_NAME, PRODUCT_NAME } from "./brand";
 import type {
@@ -611,17 +611,16 @@ export async function generateRoadmap(
   prompt: string,
   budget?: number
 ): Promise<GeneratedRoadmap> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const client = getOpenAIClient();
 
-  if (!apiKey) {
+  if (!client) {
     return applyBudgetFit(buildFallbackRoadmap(prompt, budget), budget);
   }
 
   try {
-    const client = new OpenAI({ apiKey });
     const tier = budgetTier(budget);
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: OPENAI_MODEL,
       temperature: 0.7,
       response_format: { type: "json_object" },
       messages: [

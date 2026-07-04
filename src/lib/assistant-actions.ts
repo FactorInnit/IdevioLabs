@@ -38,6 +38,11 @@ export interface AssistantContext {
     description?: string;
   }[];
   strategyMode?: boolean;
+  teamSize?: number;
+  pendingTasks?: { block: string; title: string }[];
+  recentProgress?: { note: string; blockTitle?: string; createdAt: string }[];
+  reminders?: { title: string; message: string; time: string }[];
+  projectContextText?: string;
 }
 
 export interface ActionResult {

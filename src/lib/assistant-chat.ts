@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import {
   ASSISTANT_TOOLS,
   buildNodesSummary,
@@ -9,55 +9,52 @@ import {
   type AssistantContext,
 } from "@/lib/assistant-actions";
 import { ASSISTANT_NAME, COMPANY_NAME, PRODUCT_NAME } from "@/lib/brand";
-import { getProject } from "@/lib/projects";
-import { parseNodeTasks } from "@/lib/project-utils";
+import { getOpenAIClient, isOpenAIConfigured, OPENAI_MODEL } from "@/lib/openai";
+import {
+  formatProjectContextForPrompt,
+  loadProjectAiContext,
+} from "@/lib/project-ai-context";
 
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
 
-function getOpenAIClient(): OpenAI | null {
-  const key = process.env.OPENAI_API_KEY?.trim();
-  if (!key || key.startsWith("sk-your") || key === "your-api-key-here") {
-    return null;
-  }
-  return new OpenAI({ apiKey: key });
-}
-
 async function enrichContext(context?: AssistantContext): Promise<AssistantContext | undefined> {
   if (!context?.projectId) return context;
 
   try {
-    const project = await getProject(context.projectId);
-    if (!project) return context;
+    const projectCtx = await loadProjectAiContext(context.projectId);
+    if (!projectCtx) return context;
 
     return {
       ...context,
-      name: project.name,
-      description: project.description ?? project.prompt,
-      budget: project.budget,
-      progress: project.progress,
-      nodes: project.nodes.map((n) => ({
-        id: n.id,
-        title: n.title,
-        category: n.category,
-        status: n.status,
-        progress: n.progress,
+      name: projectCtx.name,
+      description: projectCtx.description ?? projectCtx.prompt,
+      budget: projectCtx.budget,
+      progress: projectCtx.progress,
+      nodes: projectCtx.blocks.map((b) => ({
+        id: b.id,
+        title: b.title,
+        category: b.category,
+        status: b.status,
+        progress: b.progress,
       })),
-      budgetNotes: project.budgetNotes ?? undefined,
-      prompt: project.prompt,
-      blockSummaries: project.nodes.map((n) => {
-        const tasks = parseNodeTasks(n.tasks);
-        return {
-          title: n.title,
-          category: n.category,
-          progress: n.progress,
-          status: n.status,
-          taskCount: tasks.length,
-          description: n.description?.slice(0, 120),
-        };
-      }),
+      budgetNotes: projectCtx.budgetNotes ?? undefined,
+      prompt: projectCtx.prompt,
+      teamSize: projectCtx.teamSize,
+      pendingTasks: projectCtx.pendingTasks,
+      recentProgress: projectCtx.recentProgress,
+      reminders: projectCtx.reminders,
+      blockSummaries: projectCtx.blocks.map((b) => ({
+        title: b.title,
+        category: b.category,
+        progress: b.progress,
+        status: b.status,
+        taskCount: b.tasks.length,
+        description: b.description?.slice(0, 120),
+      })),
+      projectContextText: formatProjectContextForPrompt(projectCtx),
     };
   } catch (error) {
     console.error("Assistant context load error:", error);
@@ -66,15 +63,27 @@ async function enrichContext(context?: AssistantContext): Promise<AssistantConte
 }
 
 function buildSystemPrompt(context: AssistantContext | undefined): string {
-  const nodesSummary = buildNodesSummary(context?.nodes ?? []);
-  const blockDetails = context?.blockSummaries?.length
-    ? context.blockSummaries
-        .map(
-          (b) =>
-            `- ${b.category}: "${b.title}" (${b.status}, ${b.progress}%, ${b.taskCount} tasks)${b.description ? ` — ${b.description}` : ""}`
-        )
-        .join("\n")
-    : nodesSummary;
+  const startupContext = context?.projectContextText
+    ? context.projectContextText
+    : [
+        `- Company: ${context?.name ?? "unknown"}`,
+        `- Idea / description: ${context?.description ?? "unknown"}`,
+        `- Original prompt: ${context?.prompt ?? context?.description ?? "unknown"}`,
+        `- Budget: ${context?.budget != null ? `$${context.budget.toLocaleString()}` : "not set"}`,
+        `- Budget notes: ${context?.budgetNotes ?? "none"}`,
+        `- Overall progress: ${context?.progress ?? 0}%`,
+        `- Currently viewing: ${context?.selectedBlock ?? "company workspace"}`,
+        "",
+        "Roadmap blocks:",
+        context?.blockSummaries?.length
+          ? context.blockSummaries
+              .map(
+                (b) =>
+                  `- ${b.category}: "${b.title}" (${b.status}, ${b.progress}%, ${b.taskCount} tasks)${b.description ? ` — ${b.description}` : ""}`
+              )
+              .join("\n")
+          : buildNodesSummary(context?.nodes ?? []) || "No blocks yet.",
+      ].join("\n");
 
   return `You are ${ASSISTANT_NAME}, the AI founder coach inside ${PRODUCT_NAME} by ${COMPANY_NAME}.
 
@@ -83,20 +92,12 @@ Talk naturally like ChatGPT — warm, clear, and conversational. Answer greeting
 You can also update their roadmap when they ask (add/edit/delete blocks, set budget, mark progress). Only use tools for explicit change requests — not for normal chat or advice.
 
 Startup context:
-- Company: ${context?.name ?? "unknown"}
-- Idea / description: ${context?.description ?? "unknown"}
-- Original prompt: ${context?.prompt ?? context?.description ?? "unknown"}
-- Budget: ${context?.budget != null ? `$${context.budget.toLocaleString()}` : "not set"}
-- Budget notes: ${context?.budgetNotes ?? "none"}
-- Overall progress: ${context?.progress ?? 0}%
-- Currently viewing: ${context?.selectedBlock ?? "company workspace"}
-
-Roadmap blocks:
-${blockDetails || "No blocks yet."}
+${startupContext}
 
 Guidelines:
 - For "hi" or casual messages, respond naturally and reference their company by name when relevant.
 - Give specific, actionable founder advice tied to their idea — not generic startup platitudes.
+- Reference their open tasks, recent progress, and reminders when relevant.
 - Keep most replies under 150 words unless they ask for a deep dive.
 - When you use tools to change the roadmap, briefly explain what you did.
 - Respect budget constraints; suggest free tools when bootstrapping.${
@@ -168,6 +169,10 @@ export async function generateAssistantReply(
   const client = getOpenAIClient();
 
   if (!client) {
+    const setupHint = isOpenAIConfigured()
+      ? ""
+      : "\n\n(Add OPENAI_API_KEY in your environment for full ChatGPT answers about your startup.)";
+
     if (projectId) {
       for (const action of detectFallbackActions(lastUser)) {
         const result = await executeAssistantAction(
@@ -184,7 +189,7 @@ export async function generateAssistantReply(
     const actionReply =
       actionResults.length > 0 ? formatActionReply(actionResults, lastUser) : "";
     return {
-      reply: actionReply || fallbackChat(lastUser, enriched),
+      reply: (actionReply || fallbackChat(lastUser, enriched)) + setupHint,
       actionsApplied: actionResults,
       selectNodeId,
       source: "fallback",
@@ -201,7 +206,7 @@ export async function generateAssistantReply(
     ];
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: OPENAI_MODEL,
       temperature: 0.7,
       messages: chatMessages,
       tools: projectId ? ASSISTANT_TOOLS : undefined,

@@ -16,7 +16,7 @@ import { TeamModule } from "@/components/founder/modules/TeamModule";
 import { RiskAnalysisModule } from "@/components/founder/modules/RiskAnalysisModule";
 import { TodayPanel } from "@/components/founder/modules/TodayPanel";
 import { CeoReviewModule } from "@/components/founder/modules/CeoReviewModule";
-import { ExportModule } from "@/components/founder/modules/ExportModule";
+import { ChatModule } from "@/components/founder/modules/ChatModule";
 import { ProFeatureGate } from "@/components/founder/ProFeatureGate";
 import { PRO_MODULE_COPY } from "@/lib/pro-features";
 import { ProgressTimeline } from "@/components/ProgressTimeline";
@@ -42,6 +42,7 @@ const IMPLEMENTED_MODULES = new Set<FounderModuleId>([
   "team",
   "pitch",
   "ceo-review",
+  "chat",
 ]);
 
 const WIDE_MODULES = new Set<FounderModuleId>(["workspace", "roadmap"]);
@@ -229,6 +230,13 @@ function CompanyWorkspaceContent({
                 isOwner={access.isOwner}
               />
             )}
+            {module === "chat" && (
+              <ChatModule
+                context={coachContext}
+                userPlan={userPlan}
+                onProjectChange={() => window.location.reload()}
+              />
+            )}
             {!IMPLEMENTED_MODULES.has(module) && <ComingSoonModule module={module} />}
           </div>
         </div>
@@ -276,6 +284,7 @@ function moduleDescription(module: FounderModuleId): string {
     validator: "In-depth AI report with radar charts, pros/cons, risks, and improvement actions.",
     competitors: "Where competitors fail, how to beat them, and one-click add to your roadmap.",
     team: "Chat with co-founders and teammates working on this startup.",
+    chat: "Ask anything about your startup — strategy, validation, competitors, or roadmap updates. Answers use your live company context.",
     dashboard: "Health score, today's priorities, reminders, and activity at a glance.",
     pitch: "Export progress reports and investor one-pagers — Pro and Ultra.",
     "ceo-review": "15-minute guided weekly review — wins, blockers, and next week's focus.",

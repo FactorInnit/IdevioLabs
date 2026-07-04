@@ -12,7 +12,7 @@
 | `TURSO_DATABASE_URL` | `libsql://your-db.turso.io` |
 | `TURSO_AUTH_TOKEN` | from Turso dashboard |
 | `AUTH_SECRET` | long random string |
-| `OPENAI_API_KEY` | your key |
+| `OPENAI_API_KEY` | **Required for AI** — ChatGPT coach, validator, competitors, roadmaps ([get key](https://platform.openai.com/api-keys)) |
 | `GOOGLE_CLIENT_ID` | from Google Cloud |
 | `GOOGLE_CLIENT_SECRET` | from Google Cloud |
 | `STRIPE_SECRET_KEY` | live key |

@@ -4,6 +4,7 @@ import { generateAssistantReply, type ChatMessage } from "@/lib/assistant-chat";
 import type { AssistantContext } from "@/lib/assistant-actions";
 import { requireProjectView } from "@/lib/project-access";
 import { checkAiUsage, incrementAiUsage, isUltra } from "@/lib/usage-limits";
+import { isOpenAIConfigured } from "@/lib/openai";
 
 export async function POST(request: Request) {
   try {
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       selectNodeId,
       source,
       strategyMode,
+      aiConfigured: isOpenAIConfigured(),
     });
   } catch (error) {
     console.error("Assistant route error:", error);

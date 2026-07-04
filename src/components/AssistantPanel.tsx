@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Send, Sparkles, User } from "lucide-react";
+import { AlertCircle, Bot, Send, Sparkles, User } from "lucide-react";
 import { ASSISTANT_NAME, PRODUCT_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -29,10 +29,10 @@ export interface AssistantContext {
 }
 
 const SUGGESTIONS = [
-  "Add a finance block",
-  "Set budget to $100",
-  "Mark idea as complete",
   "What should I do first?",
+  "How do I validate this idea?",
+  "Who are my main competitors?",
+  "Add a marketing block",
 ];
 
 export function AssistantPanel({
@@ -51,14 +51,22 @@ export function AssistantPanel({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: `Hi! I'm ${ASSISTANT_NAME}, your ${PRODUCT_NAME} assistant${
+      content: `Hi! I'm ${ASSISTANT_NAME}, your ${PRODUCT_NAME} coach${
         context.name ? ` for ${context.name}` : ""
-      }. Ask me to add blocks, update your budget, mark progress — or get advice on your next step.`,
+      }. Ask me anything about your startup — strategy, validation, competitors, budget — or tell me to update your roadmap.`,
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/api/ai/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setAiConfigured(data?.configured === true))
+      .catch(() => setAiConfigured(null));
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -100,6 +108,10 @@ export function AssistantPanel({
         return;
       }
 
+      if (typeof data.aiConfigured === "boolean") {
+        setAiConfigured(data.aiConfigured);
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.reply ?? "…" },
@@ -134,20 +146,31 @@ export function AssistantPanel({
       )}
     >
       {!compact && (
-      <div className="flex items-center gap-3 border-b border-white/10 bg-navy-950 px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-          <Bot className="h-4 w-4 text-white" />
+        <div className="flex items-center gap-3 border-b border-white/10 bg-navy-950 px-5 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
+            <Bot className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <h3 className="flex items-center gap-1.5 font-semibold text-white">
+              {ASSISTANT_NAME}
+              <Sparkles className="h-3.5 w-3.5 text-navy-400" />
+            </h3>
+            <p className="text-xs text-white/50">
+              ChatGPT coach · knows your startup context
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="flex items-center gap-1.5 font-semibold text-white">
-            {ASSISTANT_NAME}
-            <Sparkles className="h-3.5 w-3.5 text-navy-400" />
-          </h3>
-          <p className="text-xs text-white/50">
-            Your {PRODUCT_NAME} planning assistant
-          </p>
+      )}
+
+      {aiConfigured === false && (
+        <div className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-950">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Add <code className="rounded bg-amber-100 px-1">OPENAI_API_KEY</code> to your{" "}
+            <code className="rounded bg-amber-100 px-1">.env</code> (local) or Vercel env vars
+            for full ChatGPT answers about {context.name ?? "your startup"}.
+          </span>
         </div>
-      </div>
       )}
 
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -224,7 +247,7 @@ export function AssistantPanel({
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`Ask ${ASSISTANT_NAME} anything...`}
+          placeholder={`Ask ${ASSISTANT_NAME} about ${context.name ?? "your startup"}…`}
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-navy-400 focus:bg-white"
         />
         <button
