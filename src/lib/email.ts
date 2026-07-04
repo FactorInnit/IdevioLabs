@@ -85,13 +85,36 @@ function buildInviteHtml(input: {
 </html>`;
 }
 
+export type EmailSendResult =
+  | { sent: true }
+  | { sent: false; reason: string };
+
+function parseResendError(detail: string): string {
+  try {
+    const json = JSON.parse(detail) as { message?: string; error?: string };
+    const message = json.message ?? json.error ?? detail;
+    if (/only send testing emails to your own email address/i.test(message)) {
+      return "Resend is in test mode — it can only email your Resend account address until you verify ideviolabs.com. Copy the invite link below and send it manually.";
+    }
+    if (/invalid api key/i.test(message)) {
+      return "Invalid RESEND_API_KEY on the server. Check Vercel env vars and redeploy.";
+    }
+    if (/domain is not verified/i.test(message)) {
+      return "Your sending domain is not verified in Resend yet. Copy the invite link below for now.";
+    }
+    return message;
+  } catch {
+    return detail || "Email provider rejected the message.";
+  }
+}
+
 export async function sendTeamInviteEmail(input: {
   to: string;
   inviteUrl: string;
   projectName: string;
   inviterName: string;
   role: MemberRole;
-}): Promise<boolean> {
+}): Promise<EmailSendResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from =
     process.env.RESEND_FROM?.trim() || `${PRODUCT_NAME} <onboarding@resend.dev>`;
@@ -101,7 +124,11 @@ export async function sendTeamInviteEmail(input: {
 
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY not set. Invite link:", input.inviteUrl);
-    return false;
+    return {
+      sent: false,
+      reason:
+        "RESEND_API_KEY is not set on the server. Copy the invite link below and share it manually.",
+    };
   }
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -121,8 +148,8 @@ export async function sendTeamInviteEmail(input: {
   if (!res.ok) {
     const detail = await res.text();
     console.error("[email] Resend failed:", detail);
-    throw new Error("EMAIL_FAILED");
+    return { sent: false, reason: parseResendError(detail) };
   }
 
-  return true;
+  return { sent: true };
 }

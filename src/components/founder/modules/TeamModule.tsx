@@ -39,6 +39,7 @@ interface PendingInvite {
   role: MemberRole;
   createdAt: string;
   expiresAt: string;
+  inviteUrl?: string;
 }
 
 interface TeamLimits {
@@ -169,11 +170,15 @@ export function TeamModule({
         return;
       }
       setInviteEmail("");
-      setTeamSuccess(
-        data.emailSent
-          ? `Invite sent to ${data.invite.email}. They'll need to create an account with that email.`
-          : `Invite created for ${data.invite.email}. Email is not configured yet — share this link manually: ${data.inviteUrl}`
-      );
+      if (data.emailSent) {
+        setTeamSuccess(
+          `Invite email sent to ${data.invite.email}. They must sign up with that exact email.`
+        );
+      } else {
+        setTeamSuccess(
+          `Invite created for ${data.invite.email}. ${data.emailError ?? "Email could not be sent."} Share this link: ${data.inviteUrl}`
+        );
+      }
       await load();
     } finally {
       setInviting(false);
@@ -347,22 +352,42 @@ export function TeamModule({
             {invites.map((pending) => (
               <div
                 key={pending.id}
-                className="flex flex-col gap-3 rounded-xl border border-dashed border-navy-900/15 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="rounded-xl border border-dashed border-navy-900/15 px-4 py-3"
               >
-                <div>
-                  <p className="text-sm font-semibold text-navy-900">{pending.email}</p>
-                  <p className="text-xs text-slate-500">
-                    Invite pending · {pending.role === "editor" ? "Can edit" : "View only"}
-                  </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-navy-900">{pending.email}</p>
+                    <p className="text-xs text-slate-500">
+                      Invite pending · {pending.role === "editor" ? "Can edit" : "View only"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      teamAction({ action: "revoke_invite", inviteId: pending.id })
+                    }
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    Revoke
+                  </button>
                 </div>
-                <button
-                  onClick={() =>
-                    teamAction({ action: "revoke_invite", inviteId: pending.id })
-                  }
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
-                >
-                  Revoke
-                </button>
+                {pending.inviteUrl && (
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <code className="flex-1 truncate rounded-lg bg-navy-900/5 px-3 py-2 text-[11px] text-navy-800">
+                      {pending.inviteUrl}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(pending.inviteUrl ?? "");
+                        setTeamSuccess(`Copied invite link for ${pending.email}.`);
+                        setTeamError("");
+                      }}
+                      className="rounded-lg bg-navy-900 px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      Copy link
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

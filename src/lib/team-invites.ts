@@ -67,6 +67,7 @@ export async function listProjectTeam(projectId: string, ownerId: string) {
       role: invite.role as MemberRole,
       createdAt: invite.createdAt.toISOString(),
       expiresAt: invite.expiresAt.toISOString(),
+      inviteUrl: `${getSiteUrl()}/invite/${invite.token}`,
     })),
     limits,
   };
@@ -135,7 +136,7 @@ export async function createProjectInvite(input: {
 
   const inviteUrl = `${getSiteUrl()}/invite/${invite.token}`;
 
-  const emailSent = await sendTeamInviteEmail({
+  const emailResult = await sendTeamInviteEmail({
     to: email,
     inviteUrl,
     projectName: project.name,
@@ -152,7 +153,8 @@ export async function createProjectInvite(input: {
       expiresAt: invite.expiresAt.toISOString(),
     },
     inviteUrl,
-    emailSent,
+    emailSent: emailResult.sent,
+    emailError: emailResult.sent ? undefined : emailResult.reason,
   };
 }
 
