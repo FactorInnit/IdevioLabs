@@ -43,6 +43,7 @@ function DashboardContent() {
   const { plan, planId } = usePlan();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState("");
 
@@ -67,9 +68,30 @@ function DashboardContent() {
   }, [params, refresh, syncCheckoutSession]);
 
   useEffect(() => {
+    setLoadError("");
     fetch("/api/projects")
-      .then((res) => res.json())
-      .then(setProjects)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            typeof data?.error === "string"
+              ? data.error
+              : "Could not load your companies."
+          );
+        }
+        if (!Array.isArray(data)) {
+          throw new Error("Could not load your companies.");
+        }
+        setProjects(data);
+      })
+      .catch((err) => {
+        setProjects([]);
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : "Could not load your companies. Try refreshing."
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -100,6 +122,19 @@ function DashboardContent() {
 
   return (
     <FounderShell>
+      {loadError && !loading && (
+        <div className="mx-auto max-w-7xl px-8 pt-6">
+          <GlassCard className="border-amber-200/60 bg-amber-50/90 px-5 py-4 text-sm text-amber-950">
+            <p className="font-semibold">We couldn&apos;t load your companies</p>
+            <p className="mt-1">{loadError}</p>
+            <p className="mt-2 text-xs text-amber-900/80">
+              Your data is not deleted — this is usually a database sync issue after a deploy. If
+              you manage Turso, run the latest migrations, then refresh.
+            </p>
+          </GlassCard>
+        </div>
+      )}
+
       {checkoutMessage && (
         <div className="mx-auto max-w-7xl px-8 pt-6">
           <GlassCard className="border-emerald-200/50 bg-emerald-50/80 px-5 py-4 text-sm font-medium text-emerald-800">

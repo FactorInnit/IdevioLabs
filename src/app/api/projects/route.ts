@@ -6,9 +6,20 @@ import { prisma } from "@/lib/prisma";
 import type { PlanId } from "@/lib/plans";
 
 export async function GET() {
-  const userId = await getCurrentUserId();
-  const projects = await listProjects(userId);
-  return NextResponse.json(projects);
+  try {
+    const userId = await getCurrentUserId();
+    const projects = await listProjects(userId);
+    return NextResponse.json(projects);
+  } catch (error) {
+    console.error("List projects error:", error);
+    return NextResponse.json(
+      {
+        error:
+          "Failed to load companies from the database. Run pending Turso migrations, then refresh.",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

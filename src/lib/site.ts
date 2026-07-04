@@ -79,4 +79,4 @@ export function getSiteUrl(): string {
   return "http://localhost:3000";
 }
 
-export const SUPPORT_EMAIL = `hello@${SITE_DOMAIN}`;
+export const SUPPORT_EMAIL = "helloideviolabs@gmail.com";
