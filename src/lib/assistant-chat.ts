@@ -99,7 +99,13 @@ Guidelines:
 - Give specific, actionable founder advice tied to their idea — not generic startup platitudes.
 - Keep most replies under 150 words unless they ask for a deep dive.
 - When you use tools to change the roadmap, briefly explain what you did.
-- Respect budget constraints; suggest free tools when bootstrapping.`;
+- Respect budget constraints; suggest free tools when bootstrapping.${
+    context?.strategyMode
+      ? `
+
+STRATEGY MODE (Ultra): You are in strategic planning mode. Run scenario analysis, compare tradeoffs, stress-test assumptions, and give CEO-level recommendations with clear decision frameworks. Reference their roadmap blocks and budget explicitly when advising on timing, hiring, fundraising, or pivoting.`
+      : ""
+  }`;
 }
 
 function fallbackChat(message: string, context?: AssistantContext): string {

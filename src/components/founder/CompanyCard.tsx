@@ -27,7 +27,17 @@ interface CompanyCardProps {
   progress: number;
   budget: number | null;
   updatedAt: string;
-  nodes?: { progress: number; category: string }[];
+  nodes?: {
+    id?: string;
+    title?: string;
+    progress: number;
+    category: string;
+    status?: string;
+  }[];
+  memberCount?: number;
+  habitPct?: number;
+  weeklyReviewDone?: boolean;
+  progressLogCount?: number;
   featured?: boolean;
   priority?: boolean;
 }

@@ -98,8 +98,13 @@ export async function updateNodeProgress(
     description?: string;
     note?: string;
     category?: string;
+    assigneeUserId?: string | null;
+    assigneeName?: string;
+    assigneeEmail?: string;
   }
 ) {
+  const existing = await prisma.workflowNode.findUnique({ where: { id: nodeId } });
+
   const node = await prisma.workflowNode.update({
     where: { id: nodeId },
     data: {
@@ -109,10 +114,25 @@ export async function updateNodeProgress(
       description: data.description,
       category: data.category,
       ...(data.note !== undefined ? { note: data.note } : {}),
+      ...(data.assigneeUserId !== undefined ? { assigneeUserId: data.assigneeUserId } : {}),
+      ...(data.assigneeName !== undefined ? { assigneeName: data.assigneeName } : {}),
+      ...(data.assigneeEmail !== undefined ? { assigneeEmail: data.assigneeEmail } : {}),
     },
   });
 
-  if (data.note && (data.progress !== undefined || data.status !== undefined)) {
+  if (
+    data.progress !== undefined &&
+    existing &&
+    data.progress !== existing.progress
+  ) {
+    await prisma.progressLog.create({
+      data: {
+        projectId: node.projectId,
+        nodeId: node.id,
+        note: `${node.title}: ${existing.progress}% → ${data.progress}%`,
+      },
+    });
+  } else if (data.note && (data.progress !== undefined || data.status !== undefined)) {
     await prisma.progressLog.create({
       data: {
         projectId: node.projectId,
@@ -154,6 +174,14 @@ export async function getProject(id: string) {
       nodes: true,
       edges: true,
       reminders: true,
+      members: {
+        select: {
+          id: true,
+          userId: true,
+          role: true,
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
       progressLogs: { orderBy: { createdAt: "desc" }, take: 30 },
     },
   });

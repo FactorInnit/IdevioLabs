@@ -17,6 +17,7 @@ export interface CanvasBlockNodeData {
   bgColor: string;
   step: number;
   note?: string;
+  assigneeName?: string;
 }
 
 function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
@@ -75,7 +76,9 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
               showLabel
               labelClassName="text-navy-700"
             />
-            <p className="mt-2 text-[10px] text-slate-500">{d.taskCount} tasks</p>
+            <p className="mt-2 text-[10px] text-slate-500">
+              {d.taskCount} tasks{d.assigneeName ? ` · ${d.assigneeName}` : ""}
+            </p>
           </div>
         </div>
       </div>

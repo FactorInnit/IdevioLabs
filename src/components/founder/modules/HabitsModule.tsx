@@ -115,7 +115,33 @@ export function HabitsModule({
   const [planLabel, setPlanLabel] = useState("");
 
   useEffect(() => {
-    setData(loadData(projectId));
+    const local = loadData(projectId);
+    (async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/habits`);
+        if (res.ok) {
+          const serverRaw = await res.json();
+          const server = {
+            habits: serverRaw.habits ?? DEFAULT_HABITS,
+            log: serverRaw.log ?? {},
+            dayNotes: serverRaw.dayNotes ?? {},
+            planner: serverRaw.planner ?? {},
+          } satisfies HabitsData;
+          const merged: HabitsData = {
+            habits: server.habits.length ? server.habits : local.habits,
+            log: { ...server.log, ...local.log },
+            dayNotes: { ...server.dayNotes, ...local.dayNotes },
+            planner: { ...server.planner, ...local.planner },
+          };
+          setData(merged);
+          localStorage.setItem(storageKey(projectId), JSON.stringify(merged));
+          return;
+        }
+      } catch {
+        // fall through
+      }
+      setData(local);
+    })();
   }, [projectId]);
 
   const persist = useCallback(
@@ -123,6 +149,11 @@ export function HabitsModule({
       setData(next);
       localStorage.setItem(storageKey(projectId), JSON.stringify(next));
       notifyHabitsUpdated();
+      fetch(`/api/projects/${projectId}/habits`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      }).catch(() => {});
     },
     [projectId]
   );

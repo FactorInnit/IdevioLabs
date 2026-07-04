@@ -14,6 +14,11 @@ import { HabitsModule } from "@/components/founder/modules/HabitsModule";
 import { CalendarModule } from "@/components/founder/modules/CalendarModule";
 import { TeamModule } from "@/components/founder/modules/TeamModule";
 import { RiskAnalysisModule } from "@/components/founder/modules/RiskAnalysisModule";
+import { TodayPanel } from "@/components/founder/modules/TodayPanel";
+import { CeoReviewModule } from "@/components/founder/modules/CeoReviewModule";
+import { ExportModule } from "@/components/founder/modules/ExportModule";
+import { ProgressTimeline } from "@/components/ProgressTimeline";
+import { ReminderPanel } from "@/components/ReminderPanel";
 import { HealthScorePanel } from "@/components/founder/CompanyCard";
 import { GlassCard } from "@/components/founder/GlassCard";
 import type { FounderModuleId } from "@/lib/founder-nav";
@@ -33,6 +38,8 @@ const IMPLEMENTED_MODULES = new Set<FounderModuleId>([
   "habits",
   "calendar",
   "team",
+  "pitch",
+  "ceo-review",
 ]);
 
 const WIDE_MODULES = new Set<FounderModuleId>(["workspace", "roadmap"]);
@@ -40,9 +47,13 @@ const WIDE_MODULES = new Set<FounderModuleId>(["workspace", "roadmap"]);
 function CompanyWorkspaceContent({
   project,
   access,
+  userId,
+  userPlan,
 }: {
   project: CompanyProject;
   access: ProjectAccess;
+  userId: string;
+  userPlan: string;
 }) {
   const params = useSearchParams();
   const rawModule = params.get("module");
@@ -63,7 +74,15 @@ function CompanyWorkspaceContent({
       project.updatedAt instanceof Date
         ? project.updatedAt.toISOString()
         : String(project.updatedAt),
-    nodes: project.nodes.map((n) => ({ progress: n.progress, category: n.category })),
+    nodes: project.nodes.map((n) => ({
+      id: n.id,
+      title: n.title,
+      progress: n.progress,
+      category: n.category,
+      status: n.status,
+    })),
+    memberCount: 1 + project.members.length,
+    progressLogCount: project.progressLogs.length,
   };
 
   const coachContext = useMemo(
@@ -127,7 +146,31 @@ function CompanyWorkspaceContent({
             )}
             {module === "dashboard" && (
               <div className="space-y-8">
-                <HealthScorePanel {...projectMeta} />
+                <TodayPanel project={project} />
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <HealthScorePanel {...projectMeta} />
+                  <ReminderPanel
+                    projectId={project.id}
+                    reminders={project.reminders.map((r) => ({
+                      ...r,
+                      days: r.days,
+                    }))}
+                    onRefresh={() => window.location.reload()}
+                  />
+                </div>
+                <ProgressTimeline
+                  logs={project.progressLogs.map((l) => ({
+                    id: l.id,
+                    projectId: l.projectId,
+                    nodeId: l.nodeId,
+                    note: l.note,
+                    createdAt:
+                      l.createdAt instanceof Date
+                        ? l.createdAt.toISOString()
+                        : String(l.createdAt),
+                  }))}
+                  overallProgress={project.progress}
+                />
                 <FinanceDashboardModule
                   project={{
                     budget: project.budget,
@@ -137,6 +180,12 @@ function CompanyWorkspaceContent({
                 />
                 <RiskAnalysisModule />
               </div>
+            )}
+            {module === "ceo-review" && (
+              <CeoReviewModule project={project} userId={userId} />
+            )}
+            {module === "pitch" && (
+              <ExportModule project={project} planId={userPlan} />
             )}
             {module === "roadmap" && <RoadmapModule project={project} />}
             {module === "habits" && (
@@ -156,7 +205,10 @@ function CompanyWorkspaceContent({
           </div>
         </div>
 
-        <FounderCoachPanel context={coachContext} />
+        <FounderCoachPanel
+          context={coachContext}
+          userPlan={userPlan}
+        />
       </div>
     </FounderShell>
   );
@@ -175,7 +227,8 @@ function moduleTitle(module: FounderModuleId): string {
     team: "Team Workspace",
     chat: "AI Founder Coach",
     customers: "Customer Personas",
-    pitch: "Pitch Deck",
+    pitch: "Investor exports",
+    "ceo-review": "Weekly CEO Review",
     documents: "Documents",
     settings: "Settings",
   };
@@ -195,7 +248,9 @@ function moduleDescription(module: FounderModuleId): string {
     validator: "In-depth AI report with radar charts, pros/cons, risks, and improvement actions.",
     competitors: "Where competitors fail, how to beat them, and one-click add to your roadmap.",
     team: "Chat with co-founders and teammates working on this startup.",
-    dashboard: "Health score, finances, and risks at a glance.",
+    dashboard: "Health score, today's priorities, reminders, and activity at a glance.",
+    pitch: "Export progress reports and investor one-pagers — Pro and Ultra.",
+    "ceo-review": "15-minute guided weekly review — wins, blockers, and next week's focus.",
   };
   return desc[module] ?? "Part of your Company Digital Twin — updates as you build.";
 }
@@ -219,9 +274,13 @@ function ComingSoonModule({ module }: { module: string }) {
 export function CompanyWorkspace({
   project,
   access,
+  userId,
+  userPlan,
 }: {
   project: CompanyProject;
   access: ProjectAccess;
+  userId: string;
+  userPlan: string;
 }) {
   return (
     <Suspense
@@ -231,7 +290,12 @@ export function CompanyWorkspace({
         </div>
       }
     >
-      <CompanyWorkspaceContent project={project} access={access} />
+      <CompanyWorkspaceContent
+        project={project}
+        access={access}
+        userId={userId}
+        userPlan={userPlan}
+      />
     </Suspense>
   );
 }

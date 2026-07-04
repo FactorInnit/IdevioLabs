@@ -14,8 +14,11 @@ interface FounderCoachPanelProps {
 export function FounderCoachPanel({
   context,
   onProjectChange,
-}: FounderCoachPanelProps) {
+  userPlan,
+}: FounderCoachPanelProps & { userPlan?: string }) {
   const [open, setOpen] = useState(true);
+  const [strategyMode, setStrategyMode] = useState(false);
+  const isUltra = userPlan === "ultra";
 
   return (
     <>
@@ -63,9 +66,26 @@ export function FounderCoachPanel({
         </div>
 
         <div className="flex-1 overflow-hidden p-2">
+          {isUltra && (
+            <div className="mb-2 px-2">
+              <button
+                type="button"
+                onClick={() => setStrategyMode((v) => !v)}
+                className={cn(
+                  "w-full rounded-xl border px-3 py-2 text-left text-xs font-semibold transition",
+                  strategyMode
+                    ? "border-violet-300 bg-violet-50 text-violet-900"
+                    : "border-navy-900/10 bg-white text-navy-800 hover:border-navy-300"
+                )}
+              >
+                {strategyMode ? "Strategy mode ON" : "Enable Strategy mode (Ultra)"}
+              </button>
+            </div>
+          )}
           <AssistantPanel
             context={context}
             onProjectChange={onProjectChange}
+            strategyMode={strategyMode}
             compact
           />
         </div>

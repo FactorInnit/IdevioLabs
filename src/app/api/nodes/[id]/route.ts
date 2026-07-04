@@ -51,6 +51,9 @@ export async function PATCH(
       description: body.description,
       note: body.note,
       category: body.category,
+      assigneeUserId: body.assigneeUserId,
+      assigneeName: body.assigneeName,
+      assigneeEmail: body.assigneeEmail,
     });
 
     return NextResponse.json(node);

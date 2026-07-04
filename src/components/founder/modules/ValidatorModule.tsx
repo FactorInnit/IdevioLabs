@@ -49,12 +49,24 @@ export function ValidatorModule({ projectId }: { projectId: string }) {
   }
 
   if (error || !report) {
+    const upgradeRequired = error?.includes("Upgrade to Pro");
     return (
       <GlassCard className="p-8 text-center" hover={false}>
-        <p className="text-red-600">{error || "No report"}</p>
-        <button onClick={load} className="mt-4 text-sm font-semibold text-navy-700">
-          Retry
-        </button>
+        <p className={upgradeRequired ? "text-navy-800" : "text-red-600"}>
+          {error || "No report"}
+        </p>
+        {upgradeRequired ? (
+          <a
+            href="/pricing"
+            className="mt-4 inline-flex rounded-xl bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Upgrade to Pro
+          </a>
+        ) : (
+          <button onClick={load} className="mt-4 text-sm font-semibold text-navy-700">
+            Retry
+          </button>
+        )}
       </GlassCard>
     );
   }

@@ -147,6 +147,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           bgColor: color.light,
           step: index + 1,
           note: comment,
+          assigneeName: node.assigneeName || undefined,
         } satisfies CanvasBlockNodeData,
       };
     });
@@ -311,6 +312,20 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ note: comment }),
     });
+  };
+
+  const saveAssignee = async (nodeId: string, assigneeUserId: string) => {
+    const member = project.members.find((m) => m.userId === assigneeUserId);
+    await fetch(`/api/nodes/${nodeId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assigneeUserId: assigneeUserId || null,
+        assigneeName: member?.user.name ?? "",
+        assigneeEmail: member?.user.email ?? "",
+      }),
+    });
+    router.refresh();
   };
 
   const updateProgress = async (nodeId: string, progress: number) => {
@@ -488,6 +503,24 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
                 className="mt-1 w-full accent-navy-800"
               />
             </div>
+
+            {project.members.length > 0 && (
+              <div className="mt-5">
+                <label className="text-xs font-semibold text-navy-800">Assigned to</label>
+                <select
+                  value={selected.assigneeUserId ?? ""}
+                  onChange={(e) => saveAssignee(selected.id, e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-navy-900/10 px-3 py-2 text-sm"
+                >
+                  <option value="">Unassigned</option>
+                  {project.members.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="mt-5">
               <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-navy-800">

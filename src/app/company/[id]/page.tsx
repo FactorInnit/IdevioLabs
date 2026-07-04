@@ -21,5 +21,5 @@ export default async function CompanyPage({
   const access = await getProjectAccess(user.id, id);
   if (!access.canView) notFound();
 
-  return <CompanyWorkspace project={project} access={access} />;
+  return <CompanyWorkspace project={project} access={access} userId={user.id} userPlan={user.plan} />;
 }

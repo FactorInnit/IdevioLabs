@@ -153,3 +153,52 @@ export async function sendTeamInviteEmail(input: {
 
   return { sent: true };
 }
+
+export async function sendWeeklyDigestEmail(input: {
+  to: string;
+  firstName: string;
+  projects: {
+    name: string;
+    progress: number;
+    streak: number;
+    nextMilestone: string;
+  }[];
+}): Promise<EmailSendResult> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from =
+    process.env.RESEND_FROM?.trim() || `${PRODUCT_NAME} <onboarding@resend.dev>`;
+
+  const rows = input.projects
+    .map(
+      (p) =>
+        `<tr><td style="padding:12px;border-bottom:1px solid #e2e8f0;"><strong>${p.name}</strong><br/><span style="color:#64748b;font-size:12px;">${p.nextMilestone}</span></td><td style="padding:12px;border-bottom:1px solid #e2e8f0;">${p.progress}%</td><td style="padding:12px;border-bottom:1px solid #e2e8f0;">${p.streak}d streak</td></tr>`
+    )
+    .join("");
+
+  const html = `<!DOCTYPE html><html><body style="font-family:Segoe UI,sans-serif;background:#f8fafc;padding:24px;"><div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;"><h1 style="color:#0f172a;">Your weekly founder digest</h1><p>Hi ${input.firstName}, here's your portfolio pulse from ${PRODUCT_NAME}.</p><table width="100%" style="margin-top:20px;border-collapse:collapse;">${rows}</table><p style="margin-top:24px;"><a href="${getSiteUrl()}/dashboard" style="background:#0f172a;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600;">Open Command Center</a></p></div></body></html>`;
+
+  if (!apiKey) {
+    return { sent: false, reason: "RESEND_API_KEY not configured." };
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [input.to],
+      subject: `Your weekly founder digest — ${PRODUCT_NAME}`,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    return { sent: false, reason: parseResendError(detail) };
+  }
+
+  return { sent: true };
+}

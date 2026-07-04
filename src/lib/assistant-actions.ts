@@ -37,6 +37,7 @@ export interface AssistantContext {
     taskCount: number;
     description?: string;
   }[];
+  strategyMode?: boolean;
 }
 
 export interface ActionResult {

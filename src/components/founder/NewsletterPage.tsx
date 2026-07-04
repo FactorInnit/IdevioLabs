@@ -27,6 +27,18 @@ import { cn } from "@/lib/utils";
 function NewsletterContent() {
   const featured = getFeaturedNewsletter();
   const [active, setActive] = useState<NewsletterEdition>(featured);
+  const [digestStatus, setDigestStatus] = useState("");
+
+  const sendDigest = async () => {
+    setDigestStatus("Sending…");
+    try {
+      const res = await fetch("/api/digest/weekly", { method: "POST" });
+      const data = await res.json();
+      setDigestStatus(res.ok ? "Digest sent to your email." : data.error ?? "Could not send.");
+    } catch {
+      setDigestStatus("Could not send digest.");
+    }
+  };
 
   return (
     <FounderShell>
@@ -180,12 +192,24 @@ function NewsletterContent() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/dashboard"
-                className="inline-flex rounded-xl bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
-              >
-                Back to Command Center
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={sendDigest}
+                  className="inline-flex rounded-xl border border-navy-900/15 bg-white px-4 py-2 text-sm font-semibold text-navy-900"
+                >
+                  Email me my weekly digest
+                </button>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex rounded-xl bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  Back to Command Center
+                </Link>
+              </div>
+              {digestStatus && (
+                <p className="mt-3 w-full text-sm text-slate-600">{digestStatus}</p>
+              )}
             </GlassCard>
           </div>
         </div>

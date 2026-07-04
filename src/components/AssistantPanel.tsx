@@ -40,11 +40,13 @@ export function AssistantPanel({
   onProjectChange,
   onSelectNode,
   compact = false,
+  strategyMode = false,
 }: {
   context: AssistantContext;
   onProjectChange?: () => Promise<void> | void;
   onSelectNode?: (nodeId: string) => void;
   compact?: boolean;
+  strategyMode?: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -78,7 +80,7 @@ export function AssistantPanel({
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, context }),
+        body: JSON.stringify({ messages: next, context, strategyMode }),
       });
       const data = await res.json();
 
@@ -90,7 +92,9 @@ export function AssistantPanel({
             content:
               data.error === "Sign in required."
                 ? "Please sign in to chat with me."
-                : data.error ?? "Sorry, something went wrong. Please try again.",
+                : data.upgradeRequired
+                  ? `${data.error} Visit /pricing to upgrade.`
+                  : data.error ?? "Sorry, something went wrong. Please try again.",
           },
         ]);
         return;
