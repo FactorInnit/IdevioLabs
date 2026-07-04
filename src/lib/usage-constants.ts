@@ -1,0 +1,2 @@
+export const FREE_AI_MESSAGES_PER_MONTH = 25;
+export const FREE_VALIDATOR_RUNS_PER_MONTH = 1;

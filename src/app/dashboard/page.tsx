@@ -167,6 +167,7 @@ function DashboardContent() {
         <CommandCenter
           firstName={firstName}
           planName={plan.name}
+          planId={planId}
           projects={projects}
           avgHealth={avgHealth}
           onNewCompany={handleNew}

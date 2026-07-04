@@ -9,6 +9,7 @@ import {
   Clock,
   Flame,
   Loader2,
+  Lock,
   Target,
   TrendingUp,
 } from "lucide-react";
@@ -16,6 +17,8 @@ import { GlassCard } from "../GlassCard";
 import { StreakBadge } from "../StreakBadge";
 import { AnimatedProgressBar } from "../AnimatedProgressBar";
 import { companyModuleHref } from "@/lib/founder-nav";
+import { canAccessProFeature } from "@/lib/plan-access";
+import { usePlan } from "@/lib/usePlan";
 import { todayHabitPct, type HabitsData } from "@/lib/habits-data";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import { cn, parseJson } from "@/lib/utils";
@@ -30,6 +33,8 @@ function pickTodayPriority(project: CompanyProject) {
 }
 
 export function TodayPanel({ project }: { project: CompanyProject }) {
+  const { planId } = usePlan();
+  const hasPro = canAccessProFeature(planId);
   const [reminders, setReminders] = useState<ReminderData[]>([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
   const [habitPct, setHabitPct] = useState(0);
@@ -51,6 +56,11 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
   }, [project.id]);
 
   const loadHabits = useCallback(async () => {
+    if (!hasPro) {
+      setHabitsLoading(false);
+      setHabitPct(0);
+      return;
+    }
     setHabitsLoading(true);
     try {
       const res = await fetch(`/api/projects/${project.id}/habits`);
@@ -63,7 +73,7 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
     } finally {
       setHabitsLoading(false);
     }
-  }, [project.id]);
+  }, [project.id, hasPro]);
 
   useEffect(() => {
     loadReminders();
@@ -143,8 +153,22 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Habits today
             </p>
+            {!hasPro && <Lock className="ml-auto h-3.5 w-3.5 text-slate-400" aria-hidden />}
           </div>
-          {habitsLoading ? (
+          {!hasPro ? (
+            <>
+              <p className="mt-3 text-sm text-slate-500">
+                Daily habits & planner are a Pro feature.
+              </p>
+              <Link
+                href="/pricing"
+                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+              >
+                Upgrade to track habits
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </>
+          ) : habitsLoading ? (
             <Loader2 className="mt-4 h-5 w-5 animate-spin text-navy-600" />
           ) : (
             <>
@@ -152,15 +176,15 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
               <div className="mt-2">
                 <AnimatedProgressBar value={habitPct} />
               </div>
+              <Link
+                href={companyModuleHref(project.id, "habits")}
+                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+              >
+                Open habits
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </>
           )}
-          <Link
-            href={companyModuleHref(project.id, "habits")}
-            className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
-          >
-            Open habits
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
         </GlassCard>
       </div>
 
@@ -171,9 +195,10 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
             <p className="text-sm font-semibold text-navy-900">Reminders</p>
           </div>
           <Link
-            href={`/company/${project.id}?module=ceo-review`}
+            href={companyModuleHref(project.id, "ceo-review")}
             className="inline-flex items-center gap-1 rounded-lg bg-navy-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-navy-800"
           >
+            {!hasPro && <Lock className="h-3 w-3" aria-hidden />}
             CEO Review
             <ArrowRight className="h-3 w-3" />
           </Link>

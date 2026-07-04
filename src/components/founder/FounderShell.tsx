@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, Crown, Newspaper, Sparkles, Zap } from "lucide-react";
+import { ChevronLeft, Crown, Lock, Newspaper, Sparkles, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StreakBadge } from "@/components/founder/StreakBadge";
+import { UsageLimitsPanel } from "@/components/founder/UsageLimitsPanel";
 import { useAuth } from "@/lib/auth-context";
 import { usePlan } from "@/lib/usePlan";
-import { FOUNDER_NAV, type FounderModuleId, companyModuleHref } from "@/lib/founder-nav";
+import {
+  FOUNDER_NAV_FREE,
+  FOUNDER_NAV_PRO,
+  type FounderModuleId,
+  companyModuleHref,
+} from "@/lib/founder-nav";
+import { canAccessProFeature } from "@/lib/plan-access";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +36,32 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
   const isPortfolioNav = isDashboard || isMotivation || isNewsletter;
   const isPricing = pathname === "/pricing";
   const showUpgrade = planId !== "ultra";
+  const hasProAccess = canAccessProFeature(planId);
+
+  function renderNavItem(item: (typeof FOUNDER_NAV_FREE)[number] | (typeof FOUNDER_NAV_PRO)[number]) {
+    const href = companyId ? companyModuleHref(companyId, item.id) : "/dashboard";
+    const active = activeModule === item.id;
+    const Icon = item.icon;
+    const locked = item.proOnly && !hasProAccess;
+
+    return (
+      <Link
+        key={item.id}
+        href={href}
+        className={cn(
+          "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+          active
+            ? "sidebar-item-active font-semibold text-navy-900"
+            : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800",
+          locked && !active && "opacity-80"
+        )}
+      >
+        <Icon className={cn("h-4 w-4 shrink-0", active && "text-navy-600")} />
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+        {locked && <Lock className="h-3 w-3 shrink-0 text-slate-400" aria-hidden />}
+      </Link>
+    );
+  }
 
   return (
     <div className="founder-bg flex min-h-screen">
@@ -115,32 +148,30 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
                 <Crown className={cn("h-4 w-4 shrink-0", isPricing && "text-navy-600")} />
                 {showUpgrade ? "Upgrade plan" : "Plans & billing"}
               </Link>
+              {user && planId === "free" && (
+                <div className="mt-3 px-1">
+                  <UsageLimitsPanel planId={planId} compact />
+                </div>
+              )}
             </>
           ) : (
-            FOUNDER_NAV.map((item) => {
-              const href = companyId
-                ? companyModuleHref(companyId, item.id)
-                : "/dashboard";
-              const active = activeModule === item.id;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.id}
-                  href={href}
-                  className={cn(
-                    "mb-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
-                    active
-                      ? "sidebar-item-active font-semibold text-navy-900"
-                      : "font-medium text-slate-500 hover:bg-white/60 hover:text-navy-800"
-                  )}
-                >
-                  <Icon className={cn("h-4 w-4 shrink-0", active && "text-navy-600")} />
-                  {item.label}
-                </Link>
-              );
-            })
+            <>
+              {FOUNDER_NAV_FREE.map(renderNavItem)}
+              <div className="my-3 px-3">
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Pro features
+                </p>
+              </div>
+              {FOUNDER_NAV_PRO.map(renderNavItem)}
+            </>
           )}
         </nav>
+
+        {user && planId === "free" && !isPortfolioNav && (
+          <div className="px-3 pb-2">
+            <UsageLimitsPanel planId={planId} compact />
+          </div>
+        )}
 
         {user && showUpgrade && (
           <div className="px-3 pb-3">
@@ -154,7 +185,7 @@ export function FounderShell({ companyId, companyName, children }: FounderShellP
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-white/75">
                 {planId === "free"
-                  ? "Unlock more startups, team invites, and AI power."
+                  ? "Unlock habits, competitors, CEO review, exports, and unlimited AI."
                   : "Go Ultra for unlimited companies and collaborators."}
               </p>
               <span className="mt-3 inline-flex text-[11px] font-semibold text-amber-200">

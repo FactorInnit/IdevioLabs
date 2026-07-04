@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Flame,
+  Lock,
   Map,
   Plus,
   Rocket,
@@ -20,8 +21,11 @@ import { GlassCard } from "./GlassCard";
 import { AnimatedGauge } from "./AnimatedGauge";
 import { CompanyCard } from "./CompanyCard";
 import { StreakBadge } from "./StreakBadge";
+import { UsageLimitsPanel } from "./UsageLimitsPanel";
 import { computeCompanyMetrics } from "@/lib/founder-metrics";
 import { companyModuleHref } from "@/lib/founder-nav";
+import { canAccessProFeature } from "@/lib/plan-access";
+import { isProOnlyModule } from "@/lib/pro-features";
 import { cn } from "@/lib/utils";
 
 interface ProjectSummary {
@@ -37,6 +41,7 @@ interface ProjectSummary {
 interface CommandCenterProps {
   firstName: string;
   planName: string;
+  planId: string;
   projects: ProjectSummary[];
   avgHealth: number;
   onNewCompany: () => void;
@@ -216,7 +221,15 @@ function StatPill({ label, value }: { label: string; value: string }) {
   );
 }
 
-function QuickLaunchpad({ companyId }: { companyId?: string }) {
+function QuickLaunchpad({
+  companyId,
+  planId,
+}: {
+  companyId?: string;
+  planId: string;
+}) {
+  const hasPro = canAccessProFeature(planId);
+
   if (!companyId) {
     return (
       <GlassCard className="flex h-full flex-col items-center justify-center p-8 text-center" hover={false}>
@@ -239,17 +252,26 @@ function QuickLaunchpad({ companyId }: { companyId?: string }) {
         <Zap className="h-5 w-5 text-navy-500" />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {QUICK_MODULES.map((mod) => (
-          <Link
-            key={mod.id}
-            href={companyModuleHref(companyId, mod.id)}
-            className="group flex flex-col rounded-xl border border-navy-900/6 bg-gradient-to-br from-white to-navy-50/50 p-3 transition hover:border-navy-400/30 hover:shadow-md hover:shadow-navy-900/5"
-          >
-            <mod.icon className="mb-2 h-4 w-4 text-navy-600 transition group-hover:scale-110" />
-            <span className="text-xs font-bold text-navy-900">{mod.label}</span>
-            <span className="text-[10px] text-slate-400">{mod.desc}</span>
-          </Link>
-        ))}
+        {QUICK_MODULES.map((mod) => {
+          const locked = isProOnlyModule(mod.id) && !hasPro;
+          return (
+            <Link
+              key={mod.id}
+              href={companyModuleHref(companyId, mod.id)}
+              className={cn(
+                "group relative flex flex-col rounded-xl border border-navy-900/6 bg-gradient-to-br from-white to-navy-50/50 p-3 transition hover:border-navy-400/30 hover:shadow-md hover:shadow-navy-900/5",
+                locked && "opacity-90"
+              )}
+            >
+              {locked && (
+                <Lock className="absolute right-2 top-2 h-3 w-3 text-slate-400" aria-hidden />
+              )}
+              <mod.icon className="mb-2 h-4 w-4 text-navy-600 transition group-hover:scale-110" />
+              <span className="text-xs font-bold text-navy-900">{mod.label}</span>
+              <span className="text-[10px] text-slate-400">{mod.desc}</span>
+            </Link>
+          );
+        })}
       </div>
     </GlassCard>
   );
@@ -305,6 +327,7 @@ function PortfolioInsights({ projects }: { projects: ProjectSummary[] }) {
 export function CommandCenter({
   firstName,
   planName,
+  planId,
   projects,
   avgHealth,
   onNewCompany,
@@ -335,6 +358,11 @@ export function CommandCenter({
 
       {projects.length > 0 && (
         <section className="relative mx-auto max-w-7xl px-8 py-8">
+          {planId === "free" && (
+            <div className="mb-5">
+              <UsageLimitsPanel planId={planId} />
+            </div>
+          )}
           <div className="grid gap-5 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <MissionControlCard
@@ -345,12 +373,18 @@ export function CommandCenter({
               />
             </div>
             <div className="lg:col-span-4">
-              <QuickLaunchpad companyId={projects[0]?.id} />
+              <QuickLaunchpad companyId={projects[0]?.id} planId={planId} />
             </div>
             <div className="lg:col-span-3">
               <PortfolioInsights projects={projects} />
             </div>
           </div>
+        </section>
+      )}
+
+      {projects.length === 0 && planId === "free" && (
+        <section className="relative mx-auto max-w-7xl px-8 pt-8">
+          <UsageLimitsPanel planId={planId} />
         </section>
       )}
 

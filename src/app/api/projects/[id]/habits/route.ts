@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireProjectView, requireProjectEdit } from "@/lib/project-access";
 import { parseHabitsData } from "@/lib/habits-data";
+import { proFeatureError } from "@/lib/pro-features";
+import { isProOrAbove } from "@/lib/usage-limits";
 
 export async function GET(
   _request: Request,
@@ -10,6 +12,13 @@ export async function GET(
 ) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+
+  if (!isProOrAbove(user.plan)) {
+    return NextResponse.json(
+      { error: proFeatureError("Daily Habits"), upgradeRequired: true },
+      { status: 402 }
+    );
+  }
 
   const { id } = await params;
   try {
@@ -28,6 +37,13 @@ export async function PUT(
 ) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+
+  if (!isProOrAbove(user.plan)) {
+    return NextResponse.json(
+      { error: proFeatureError("Daily Habits"), upgradeRequired: true },
+      { status: 402 }
+    );
+  }
 
   const { id } = await params;
   try {

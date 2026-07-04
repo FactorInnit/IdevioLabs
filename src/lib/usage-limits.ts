@@ -1,26 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import type { PlanId } from "@/lib/plans";
+import { isProOrAbove } from "@/lib/plan-access";
+import {
+  FREE_AI_MESSAGES_PER_MONTH,
+  FREE_VALIDATOR_RUNS_PER_MONTH,
+} from "@/lib/usage-constants";
 
-export const FREE_AI_MESSAGES_PER_MONTH = 25;
-export const FREE_VALIDATOR_RUNS_PER_MONTH = 1;
+export {
+  FREE_AI_MESSAGES_PER_MONTH,
+  FREE_VALIDATOR_RUNS_PER_MONTH,
+} from "@/lib/usage-constants";
+
+export { isProOrAbove, isUltra, normalizePlanId } from "@/lib/plan-access";
 
 function currentMonthKey(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
-export function normalizePlanId(plan: string | null | undefined): PlanId {
-  if (plan === "pro" || plan === "ultra") return plan;
-  return "free";
-}
-
-export function isProOrAbove(plan: string | null | undefined): boolean {
-  const id = normalizePlanId(plan);
-  return id === "pro" || id === "ultra";
-}
-
-export function isUltra(plan: string | null | undefined): boolean {
-  return normalizePlanId(plan) === "ultra";
 }
 
 async function getOrCreateUsage(userId: string) {

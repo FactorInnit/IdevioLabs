@@ -17,6 +17,8 @@ import { RiskAnalysisModule } from "@/components/founder/modules/RiskAnalysisMod
 import { TodayPanel } from "@/components/founder/modules/TodayPanel";
 import { CeoReviewModule } from "@/components/founder/modules/CeoReviewModule";
 import { ExportModule } from "@/components/founder/modules/ExportModule";
+import { ProFeatureGate } from "@/components/founder/ProFeatureGate";
+import { PRO_MODULE_COPY } from "@/lib/pro-features";
 import { ProgressTimeline } from "@/components/ProgressTimeline";
 import { ReminderPanel } from "@/components/ReminderPanel";
 import { HealthScorePanel } from "@/components/founder/CompanyCard";
@@ -134,7 +136,15 @@ function CompanyWorkspaceContent({
 
             {module === "workspace" && <CanvasWorkspace project={project} />}
             {module === "validator" && <ValidatorModule projectId={project.id} />}
-            {module === "competitors" && <CompetitorsModule projectId={project.id} />}
+            {module === "competitors" && (
+              <ProFeatureGate
+                planId={userPlan}
+                title={PRO_MODULE_COPY.competitors!.title}
+                description={PRO_MODULE_COPY.competitors!.description}
+              >
+                <CompetitorsModule projectId={project.id} />
+              </ProFeatureGate>
+            )}
             {module === "finance" && (
               <FinanceDashboardModule
                 project={{
@@ -182,14 +192,32 @@ function CompanyWorkspaceContent({
               </div>
             )}
             {module === "ceo-review" && (
-              <CeoReviewModule project={project} userId={userId} />
+              <ProFeatureGate
+                planId={userPlan}
+                title={PRO_MODULE_COPY["ceo-review"]!.title}
+                description={PRO_MODULE_COPY["ceo-review"]!.description}
+              >
+                <CeoReviewModule project={project} userId={userId} />
+              </ProFeatureGate>
             )}
             {module === "pitch" && (
-              <ExportModule project={project} planId={userPlan} />
+              <ProFeatureGate
+                planId={userPlan}
+                title={PRO_MODULE_COPY.pitch!.title}
+                description={PRO_MODULE_COPY.pitch!.description}
+              >
+                <ExportModule project={project} />
+              </ProFeatureGate>
             )}
             {module === "roadmap" && <RoadmapModule project={project} />}
             {module === "habits" && (
-              <HabitsModule projectId={project.id} projectName={project.name} />
+              <ProFeatureGate
+                planId={userPlan}
+                title={PRO_MODULE_COPY.habits!.title}
+                description={PRO_MODULE_COPY.habits!.description}
+              >
+                <HabitsModule projectId={project.id} projectName={project.name} />
+              </ProFeatureGate>
             )}
             {module === "calendar" && (
               <CalendarModule projectId={project.id} projectName={project.name} />

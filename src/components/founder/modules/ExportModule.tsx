@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { FileDown, Lock, Sparkles } from "lucide-react";
+import { FileDown } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import {
   buildPitchOnePagerHtml,
@@ -40,40 +39,8 @@ function printHtml(html: string) {
   };
 }
 
-export function ExportModule({
-  project,
-  planId,
-}: {
-  project: CompanyProject;
-  planId: string;
-}) {
+export function ExportModule({ project }: { project: CompanyProject }) {
   const exportData = toExportData(project);
-
-  if (planId === "free") {
-    return (
-      <GlassCard className="flex flex-col items-center py-16 text-center" hover={false}>
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-900/10">
-          <Lock className="h-7 w-7 text-navy-700" />
-        </div>
-        <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-          Pro feature
-        </p>
-        <h2 className="mt-2 font-display text-xl font-bold text-navy-900">
-          Export progress & pitch PDFs
-        </h2>
-        <p className="mt-2 max-w-md text-sm text-slate-500">
-          Upgrade to Pro to print investor-ready progress reports and one-page pitch summaries.
-        </p>
-        <Link
-          href="/pricing"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-navy-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy-800"
-        >
-          <Sparkles className="h-4 w-4" />
-          View pricing
-        </Link>
-      </GlassCard>
-    );
-  }
 
   return (
     <div className="space-y-6">
