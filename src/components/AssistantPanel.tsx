@@ -58,14 +58,25 @@ export function AssistantPanel({
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
+  const [aiStatus, setAiStatus] = useState<{
+    configured: boolean;
+    connected: boolean;
+    message?: string;
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/ai/status")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setAiConfigured(data?.configured === true))
-      .catch(() => setAiConfigured(null));
+      .then((data) => {
+        if (!data) return;
+        setAiStatus({
+          configured: data.configured === true,
+          connected: data.connected === true,
+          message: typeof data.message === "string" ? data.message : undefined,
+        });
+      })
+      .catch(() => setAiStatus(null));
   }, []);
 
   useEffect(() => {
@@ -109,7 +120,11 @@ export function AssistantPanel({
       }
 
       if (typeof data.aiConfigured === "boolean") {
-        setAiConfigured(data.aiConfigured);
+        setAiStatus((prev) =>
+          prev
+            ? { ...prev, configured: data.aiConfigured }
+            : { configured: data.aiConfigured, connected: false }
+        );
       }
 
       setMessages((prev) => [
@@ -162,13 +177,14 @@ export function AssistantPanel({
         </div>
       )}
 
-      {aiConfigured === false && (
+      {aiStatus && !aiStatus.connected && (
         <div className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-950">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
-            Add <code className="rounded bg-amber-100 px-1">OPENAI_API_KEY</code> to your{" "}
-            <code className="rounded bg-amber-100 px-1">.env</code> (local) or Vercel env vars
-            for full ChatGPT answers about {context.name ?? "your startup"}.
+            {aiStatus.message ??
+              (aiStatus.configured
+                ? "ChatGPT is configured but not responding. Check your OpenAI billing and redeploy on Vercel."
+                : `Add OPENAI_API_KEY to Vercel (no quotes around the value), redeploy, then try again.`)}
           </span>
         </div>
       )}

@@ -9,7 +9,7 @@ import {
   type AssistantContext,
 } from "@/lib/assistant-actions";
 import { ASSISTANT_NAME, COMPANY_NAME, PRODUCT_NAME } from "@/lib/brand";
-import { getOpenAIClient, isOpenAIConfigured, OPENAI_MODEL } from "@/lib/openai";
+import { getOpenAIClient, isOpenAIConfigured, formatOpenAIError, OPENAI_MODEL } from "@/lib/openai";
 import {
   formatProjectContextForPrompt,
   loadProjectAiContext,
@@ -252,6 +252,7 @@ export async function generateAssistantReply(
     };
   } catch (error) {
     console.error("OpenAI assistant error:", error);
+    const aiError = formatOpenAIError(error);
 
     if (projectId) {
       for (const action of detectFallbackActions(lastUser)) {
@@ -272,8 +273,7 @@ export async function generateAssistantReply(
     return {
       reply:
         actionReply ||
-        fallbackChat(lastUser, enriched) +
-          "\n\n(Live AI is temporarily unavailable — add a valid OPENAI_API_KEY on Vercel for full ChatGPT responses.)",
+        fallbackChat(lastUser, enriched) + `\n\n(${aiError.message})`,
       actionsApplied: actionResults,
       selectNodeId,
       source: "fallback",
