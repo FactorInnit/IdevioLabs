@@ -109,12 +109,12 @@ export function CompanyCard({
           healthColor
         )}
       />
-      {isOwner && onDeleted && (
+      {featured && isOwner && onDeleted && (
         <DeleteCompanyButton
           projectId={id}
           name={displayName}
           onDeleted={onDeleted}
-          className={featured ? "right-6 top-6" : "right-4 top-4"}
+          className="bottom-6 right-6"
         />
       )}
       <div className="founder-shimmer pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -165,7 +165,17 @@ export function CompanyCard({
             />
             <CardMetrics metrics={metrics} progress={progress} updatedAt={updatedAt} />
           </Link>
-          <QuickLinks id={id} className="relative mt-4 border-t border-navy-900/6 pt-4" compact />
+          <div className="relative mt-4 flex items-end justify-between gap-3 border-t border-navy-900/6 pt-4">
+            <QuickLinks id={id} className="min-w-0 flex-1" compact />
+            {isOwner && onDeleted && (
+              <DeleteCompanyButton
+                projectId={id}
+                name={displayName}
+                onDeleted={onDeleted}
+                inline
+              />
+            )}
+          </div>
         </>
       )}
     </GlassCard>
@@ -177,11 +187,13 @@ function DeleteCompanyButton({
   name,
   onDeleted,
   className,
+  inline = false,
 }: {
   projectId: string;
   name: string;
   onDeleted: () => void;
   className?: string;
+  inline?: boolean;
 }) {
   const [deleting, setDeleting] = useState(false);
 
@@ -221,7 +233,8 @@ function DeleteCompanyButton({
       disabled={deleting}
       onClick={handleDelete}
       className={cn(
-        "absolute z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-red-200/80 bg-white/95 text-red-600 opacity-0 shadow-sm transition hover:border-red-300 hover:bg-red-50 group-hover:opacity-100",
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200/80 bg-white/95 text-red-600 opacity-0 shadow-sm transition hover:border-red-300 hover:bg-red-50 group-hover:opacity-100",
+        inline ? "relative" : "absolute bottom-4 right-4 z-10",
         deleting && "opacity-100",
         className
       )}
