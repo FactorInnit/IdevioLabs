@@ -24,6 +24,8 @@ export interface NewsletterEdition {
     role: string;
   };
   readMinutes: number;
+  coverImage: string;
+  sectionImage: string;
 }
 
 export const FOUNDER_NEWSLETTERS: NewsletterEdition[] = [
@@ -79,6 +81,8 @@ export const FOUNDER_NEWSLETTERS: NewsletterEdition[] = [
       role: "Founder, Disney",
     },
     readMinutes: 6,
+    coverImage: "/images/hero-3d.png",
+    sectionImage: "/images/showcase-3d.png",
   },
   {
     id: "2026-w26",
@@ -126,6 +130,8 @@ export const FOUNDER_NEWSLETTERS: NewsletterEdition[] = [
       role: "Former CEO, Starbucks",
     },
     readMinutes: 5,
+    coverImage: "/images/showcase-3d.png",
+    sectionImage: "/images/hero-3d.png",
   },
   {
     id: "2026-w25",
@@ -173,6 +179,8 @@ export const FOUNDER_NEWSLETTERS: NewsletterEdition[] = [
       role: "CEO, Meta",
     },
     readMinutes: 5,
+    coverImage: "/images/prompt-bg.png",
+    sectionImage: "/images/hero-3d.png",
   },
 ];
 
