@@ -66,3 +66,22 @@ export const HOW_IT_WORKS = [
     text: "Update progress, get daily reminders, and watch your startup take shape phase by phase.",
   },
 ] as const;
+
+export const AI_TRAINING_SOURCES = [
+  {
+    label: "10,000+ CEOs & founders",
+    detail: "Operator playbooks, launch patterns, and real-world decision frameworks",
+  },
+  {
+    label: "Y Combinator resources",
+    detail: "Startup School, partner essays, and canonical early-stage advice",
+  },
+  {
+    label: "Top accelerator playbooks",
+    detail: "Seed-stage fundraising, GTM, and product-market fit frameworks",
+  },
+  {
+    label: "Investor & operator content",
+    detail: "First Round Review, a16z, and leading founder communities",
+  },
+] as const;

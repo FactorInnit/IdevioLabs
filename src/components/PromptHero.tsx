@@ -21,6 +21,7 @@ import {
 import { StatsBar } from "@/components/landing/StatsBar";
 import { TrustedBy } from "@/components/landing/TrustedBy";
 import { CredibilityStrip } from "@/components/landing/CredibilityStrip";
+import { AITrainingCredibility } from "@/components/landing/AITrainingCredibility";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { FinalCTA } from "@/components/landing/FinalCTA";
@@ -54,7 +55,7 @@ const FEATURES = [
   {
     icon: Bot,
     title: `${ASSISTANT_NAME} Founder Coach`,
-    text: "Always on the right side of your workspace. Product manager, CTO, and strategist — makes real changes.",
+    text: "Trained on 10,000+ founder & CEO playbooks plus YC resources — your PM, CTO, and strategist in one panel.",
   },
   {
     icon: Bell,
@@ -165,8 +166,8 @@ export function PromptHero() {
 
               <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-600">
                 {PRODUCT_NAME} is the AI Founder OS — roadmap, finances, recommended tools,
-                validation scores, daily habits, and an integrated coach. Everything visual.
-                Everything connected.
+                validation scores, daily habits, and an integrated coach. Built on insights from
+                10,000+ founders and YC-grade playbooks for advice you can actually trust.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -250,6 +251,7 @@ export function PromptHero() {
       </div>
 
       <StatsBar />
+      <AITrainingCredibility />
       <CredibilityStrip />
       <TrustedBy />
 
@@ -277,8 +279,8 @@ export function PromptHero() {
               Build your roadmap in under 2 minutes
             </h2>
             <p className="mt-3 text-white/70">
-              Describe your idea and get a complete 8-block business plan with ordered
-              tasks and tools — instantly.
+              Describe your idea and get a complete 8-block business plan with ordered tasks and
+              tools — powered by AI trained on 10,000+ founders and YC-grade startup playbooks.
             </p>
           </div>
 

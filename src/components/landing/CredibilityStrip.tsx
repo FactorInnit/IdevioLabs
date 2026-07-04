@@ -1,7 +1,7 @@
 export function CredibilityStrip() {
   const badges = [
-    { label: "SOC 2 mindset", sub: "Your data stays local" },
-    { label: "AI-powered", sub: "GPT-enhanced roadmaps" },
+    { label: "10,000+ founder insights", sub: "CEO & operator playbooks" },
+    { label: "YC-informed AI", sub: "Startup School & library patterns" },
     { label: "No lock-in", sub: "Export anytime" },
     { label: "2 min setup", sub: "Start immediately" },
   ];

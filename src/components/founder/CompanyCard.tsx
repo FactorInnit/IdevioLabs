@@ -17,6 +17,7 @@ import {
   formatValuation,
 } from "@/lib/founder-metrics";
 import { companyModuleHref } from "@/lib/founder-nav";
+import { CompanyVisionQuote } from "./CompanyVisionQuote";
 import { cn } from "@/lib/utils";
 
 interface CompanyCardProps {
@@ -88,7 +89,7 @@ export function CompanyCard({
             <FeaturedHeader name={name} description={description} metrics={metrics} />
             <FeaturedMetrics metrics={metrics} progress={progress} updatedAt={updatedAt} />
           </Link>
-          <div className="flex flex-col justify-between border-t border-navy-900/6 bg-navy-50/30 p-6 lg:min-w-[220px] lg:border-l lg:border-t-0">
+          <div className="flex flex-col justify-between border-t border-navy-900/6 bg-navy-50/30 p-6 lg:min-w-[280px] lg:border-l lg:border-t-0">
             <div className="text-center lg:text-left">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Health score
@@ -97,6 +98,11 @@ export function CompanyCard({
                 {metrics.healthScore}
               </p>
               <p className="mt-1 text-xs text-slate-500">{metrics.readinessLabel}</p>
+              <CompanyVisionQuote
+                projectId={id}
+                projectName={name}
+                description={description}
+              />
             </div>
             <QuickLinks id={id} className="mt-6" />
           </div>

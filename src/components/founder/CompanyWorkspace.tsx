@@ -173,7 +173,7 @@ function moduleDescription(module: FounderModuleId): string {
       "Visual execution map with sequence, progress sliders, and a kanban board view.",
     habits:
       "Track habits, plan your week with time blocks, add notes, and see consistency on a calendar.",
-    calendar: "Schedule investor calls, team meetings, and track launch deadlines.",
+    calendar: "Schedule meetings, sync Google Calendar, and embed Calendly booking.",
     validator: "In-depth AI report with radar charts, pros/cons, risks, and improvement actions.",
     competitors: "Where competitors fail, how to beat them, and one-click add to your roadmap.",
     team: "Chat with co-founders and teammates working on this startup.",
