@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Background,
   BackgroundVariant,
@@ -78,6 +78,7 @@ function mindMapPosition(index: number, total: number) {
 
 export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [meta, setMeta] = useState<CanvasMeta>({ colors: {}, comments: {}, sectionOrder: {} });
   const [sequence, setSequence] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -106,6 +107,13 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
       setSequence(defaultSequence(project.nodes));
     }
   }, [project.id, project.nodes]);
+
+  useEffect(() => {
+    const nodeId = searchParams.get("node");
+    if (nodeId && project.nodes.some((n) => n.id === nodeId)) {
+      setSelectedId(nodeId);
+    }
+  }, [searchParams, project.nodes]);
 
   const persistMeta = useCallback(
     (next: CanvasMeta) => {

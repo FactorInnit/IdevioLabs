@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { AnimatedProgressBar, MilestoneToast } from "../AnimatedProgressBar";
+import { MilestoneTasksPeek } from "./MilestoneTasksPeek";
 import { useProgressCelebration } from "@/hooks/useProgressCelebration";
 import { CATEGORY_CONFIG, WORKFLOW_PHASES } from "@/lib/constants";
 import { parseNodeTasks } from "@/lib/project-utils";
@@ -294,7 +295,7 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
               const tasks = parseNodeTasks(node.tasks);
               return (
                 <div key={node.id} className="flex items-center">
-                  <div className="w-[220px] rounded-2xl border-2 border-navy-900/10 bg-white p-4 shadow-md">
+                  <div className="w-[260px] rounded-2xl border-2 border-navy-900/10 bg-white p-4 shadow-md">
                     <div className="flex items-center justify-between">
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
@@ -343,7 +344,12 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
                         onChange={(e) => updateProgress(node.id, Number(e.target.value))}
                         className="mt-2 w-full accent-navy-800"
                       />
-                      <p className="mt-1 text-[10px] text-slate-400">{tasks.length} tasks</p>
+                      <MilestoneTasksPeek
+                        projectId={project.id}
+                        nodeId={node.id}
+                        nodeTitle={node.title}
+                        tasks={tasks}
+                      />
                     </div>
                     {node.estimatedCost != null && node.estimatedCost > 0 && (
                       <p className="mt-2 text-[10px] text-emerald-700">
@@ -380,6 +386,7 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
               <div className="space-y-2">
                 {col.items.map((node) => {
                   const cat = CATEGORY_CONFIG[node.category as NodeCategory];
+                  const tasks = parseNodeTasks(node.tasks);
                   return (
                     <div
                       key={node.id}
@@ -403,6 +410,13 @@ export function RoadmapModule({ project }: { project: CompanyProject }) {
                             className="mt-2"
                             trackClassName="h-1.5 bg-navy-900/8"
                             durationMs={600}
+                          />
+                          <MilestoneTasksPeek
+                            projectId={project.id}
+                            nodeId={node.id}
+                            nodeTitle={node.title}
+                            tasks={tasks}
+                            compact
                           />
                         </div>
                       </div>

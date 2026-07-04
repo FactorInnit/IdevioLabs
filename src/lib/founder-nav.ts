@@ -91,3 +91,11 @@ export const FOUNDER_NAV_PRO = FOUNDER_NAV.filter((item) => item.proOnly);
 export function companyModuleHref(companyId: string, module: FounderModuleId) {
   return `/company/${companyId}?module=${module}`;
 }
+
+export function companyModuleNodeHref(
+  companyId: string,
+  module: FounderModuleId,
+  nodeId: string
+) {
+  return `/company/${companyId}?module=${module}&node=${encodeURIComponent(nodeId)}`;
+}
