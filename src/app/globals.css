@@ -406,3 +406,84 @@ body {
   90% { opacity: 0.7; transform: rotate(-24deg) translateX(-12px); }
   95% { opacity: 0; transform: rotate(-24deg) translateX(-48px); }
 }
+
+/* Landing page product demo animations */
+.demo-rise {
+  animation: demo-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.demo-node {
+  animation: demo-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.demo-fill {
+  width: 0;
+  animation: demo-fill 1.8s ease-out 0.3s forwards;
+}
+
+.demo-bar {
+  width: 0;
+  animation: demo-fill 1.4s ease-out 0.35s forwards;
+}
+
+.demo-gauge {
+  stroke-dashoffset: 264;
+  animation: demo-gauge 1.6s ease-out 0.2s forwards;
+}
+
+.demo-line {
+  stroke: rgba(74, 120, 180, 0.45);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  animation: demo-line 1.2s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.demo-line-delayed { animation-delay: 0.65s; }
+.demo-line-delayed-2 { animation-delay: 0.9s; }
+.demo-line-delayed-3 { animation-delay: 1.15s; }
+
+.demo-cursor {
+  animation: demo-cursor 1s step-end infinite;
+}
+
+@keyframes demo-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes demo-fill {
+  to { width: var(--demo-target, 72%); }
+}
+
+.demo-bar { --demo-target: 100%; }
+.demo-fill { --demo-target: 72%; }
+
+@keyframes demo-gauge {
+  to { stroke-dashoffset: 58; }
+}
+
+@keyframes demo-line {
+  from { opacity: 0; stroke-dashoffset: 24; }
+  to { opacity: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes demo-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-rise,
+  .demo-node,
+  .demo-fill,
+  .demo-bar,
+  .demo-gauge,
+  .demo-line,
+  .demo-cursor {
+    animation: none;
+    opacity: 1;
+    width: 72%;
+    stroke-dashoffset: 58;
+  }
+}
