@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getProject } from "@/lib/projects";
 import { getGoogleCalendarAuthUrl } from "@/lib/google-calendar";
+import { calendarColumnsReady } from "@/lib/google-calendar-user";
 import { companyModuleHref } from "@/lib/founder-nav";
 import { getOAuthOrigin, getRequestOrigin } from "@/lib/site";
 
@@ -39,19 +40,22 @@ export async function GET(request: Request) {
       return calendarRedirect(request, projectId, "not_configured");
     }
 
+    if (!(await calendarColumnsReady())) {
+      return calendarRedirect(request, projectId, "db_setup");
+    }
+
     const origin = getOAuthOrigin(request);
     const returnPath = companyModuleHref(projectId, "calendar");
     const url = getGoogleCalendarAuthUrl(projectId, returnPath, origin);
     return NextResponse.redirect(url);
   } catch (error) {
     console.error("Google Calendar connect error:", error);
-    const message = error instanceof Error ? error.message : String(error);
-    const code =
-      message.includes("no such column") ||
-      message.includes("googleCalendar") ||
-      message.includes("Unknown column")
-        ? "db_setup"
-        : "connect_failed";
+    const code = isMissingCalendarColumnError(error) ? "db_setup" : "connect_failed";
     return calendarRedirect(request, projectId, code);
   }
+}
+
+function isMissingCalendarColumnError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /no such column|Unknown column|column.*does not exist/i.test(message);
 }

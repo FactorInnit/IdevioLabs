@@ -162,7 +162,7 @@ export function CalendarModule({
       );
     } else if (err === "db_setup") {
       setStatusMessage(
-        "Database needs a quick update. Run the Google Calendar SQL migration in Turso (see setup note below)."
+        "Database columns not found on the live Turso DB. Run both SQL lines below in the same database as Vercel TURSO_DATABASE_URL, then try again."
       );
     } else if (err === "google_denied") {
       setStatusMessage("Google Calendar connection was cancelled.");
@@ -338,11 +338,13 @@ export function CalendarModule({
                 </code>
               </p>
               <p className="mt-1 text-[11px] text-slate-400">
-                Turso SQL:{" "}
-                <code className="rounded bg-navy-900/5 px-1">
-                  ALTER TABLE &quot;User&quot; ADD COLUMN &quot;googleCalendarRefreshToken&quot; TEXT;
-                </code>
+                Turso SQL (run both in the DB linked to Vercel TURSO_DATABASE_URL):
               </p>
+              <code className="mt-1 block break-all rounded bg-navy-900/5 px-2 py-1 text-[10px] text-slate-600">
+                ALTER TABLE &quot;User&quot; ADD COLUMN &quot;googleCalendarRefreshToken&quot; TEXT;
+                <br />
+                ALTER TABLE &quot;User&quot; ADD COLUMN &quot;googleCalendarEmail&quot; TEXT;
+              </code>
             </div>
           )}
         </GlassCard>

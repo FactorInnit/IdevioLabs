@@ -68,7 +68,7 @@ export async function GET(request: Request) {
     const redirectUrl = new URL(parsed.next, parsed.origin);
     redirectUrl.searchParams.set(
       "calendar_error",
-      message.includes("no such column") || message.includes("googleCalendar")
+      /no such column|Unknown column|column.*does not exist/i.test(message)
         ? "db_setup"
         : "google_failed"
     );

@@ -5,6 +5,25 @@ import {
   type GoogleCalendarEvent,
 } from "@/lib/google-calendar";
 
+function isMissingCalendarColumnError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /no such column|Unknown column|column.*does not exist/i.test(message);
+}
+
+/** Verify production Turso has the Google Calendar columns before OAuth. */
+export async function calendarColumnsReady(): Promise<boolean> {
+  try {
+    await prisma.$queryRawUnsafe(
+      'SELECT "googleCalendarRefreshToken", "googleCalendarEmail" FROM "User" LIMIT 1'
+    );
+    return true;
+  } catch (error) {
+    if (isMissingCalendarColumnError(error)) return false;
+    console.error("Google Calendar column check error:", error);
+    return false;
+  }
+}
+
 export async function getGoogleCalendarAccessToken(
   userId: string
 ): Promise<string | null> {

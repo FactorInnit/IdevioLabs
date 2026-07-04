@@ -93,7 +93,10 @@ export async function getCurrentUserId(): Promise<string | null> {
 export async function getCurrentUser(): Promise<PublicUser | null> {
   const userId = await getCurrentUserId();
   if (!userId) return null;
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, plan: true },
+  });
   if (!user) return null;
   return { id: user.id, email: user.email, name: user.name, plan: user.plan };
 }
