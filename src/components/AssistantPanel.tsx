@@ -82,6 +82,20 @@ export function AssistantPanel({
       });
       const data = await res.json();
 
+      if (!res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              data.error === "Sign in required."
+                ? "Please sign in to chat with me."
+                : data.error ?? "Sorry, something went wrong. Please try again.",
+          },
+        ]);
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.reply ?? "…" },

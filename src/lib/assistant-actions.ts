@@ -27,6 +27,16 @@ export interface AssistantContext {
   progress?: number;
   selectedBlock?: string;
   nodes?: AssistantNodeRef[];
+  prompt?: string;
+  budgetNotes?: string | null;
+  blockSummaries?: {
+    title: string;
+    category: string;
+    progress: number;
+    status: string;
+    taskCount: number;
+    description?: string;
+  }[];
 }
 
 export interface ActionResult {
@@ -407,10 +417,17 @@ export async function executeToolCalls(
 
   for (const call of toolCalls) {
     if (call.type !== "function") continue;
-    const args = JSON.parse(call.function.arguments || "{}") as Record<
-      string,
-      unknown
-    >;
+    let args: Record<string, unknown> = {};
+    try {
+      args = JSON.parse(call.function.arguments || "{}") as Record<string, unknown>;
+    } catch {
+      results.push({
+        action: call.function.name,
+        success: false,
+        message: "Invalid tool arguments.",
+      });
+      continue;
+    }
     const result = await executeAssistantAction(
       projectId,
       call.function.name,
