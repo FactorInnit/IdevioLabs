@@ -108,10 +108,11 @@ export async function updateNodeProgress(
       title: data.title,
       description: data.description,
       category: data.category,
+      ...(data.note !== undefined ? { note: data.note } : {}),
     },
   });
 
-  if (data.note) {
+  if (data.note && (data.progress !== undefined || data.status !== undefined)) {
     await prisma.progressLog.create({
       data: {
         projectId: node.projectId,

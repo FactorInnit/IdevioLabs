@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { GripVertical } from "lucide-react";
+import { GripVertical, MessageSquare } from "lucide-react";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import type { NodeCategory } from "@/lib/types";
 
@@ -15,7 +15,7 @@ export interface CanvasBlockNodeData {
   borderColor: string;
   bgColor: string;
   step: number;
-  hasNote?: boolean;
+  note?: string;
 }
 
 function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
@@ -62,6 +62,12 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
             <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-600">
               {d.description}
             </p>
+            {d.note ? (
+              <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-white/75 px-2 py-1.5">
+                <MessageSquare className="mt-0.5 h-3 w-3 shrink-0 text-navy-500" />
+                <p className="line-clamp-2 text-[10px] leading-relaxed text-navy-800">{d.note}</p>
+              </div>
+            ) : null}
             <div className="mt-3">
               <div className="mb-1 flex justify-between text-[10px] font-semibold text-navy-700">
                 <span>Progress</span>
@@ -74,9 +80,7 @@ function CanvasBlockNodeComponent({ data, selected }: NodeProps) {
                 />
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-slate-500">
-              {d.taskCount} tasks{d.hasNote ? " · note" : ""}
-            </p>
+            <p className="mt-2 text-[10px] text-slate-500">{d.taskCount} tasks</p>
           </div>
         </div>
       </div>

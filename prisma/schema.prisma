@@ -111,6 +111,7 @@ model WorkflowNode {
   tasks         String
   status        String   @default("pending")
   progress      Int      @default(0)
+  note          String   @default("")
   posX          Float
   posY          Float
   estimatedCost Float?

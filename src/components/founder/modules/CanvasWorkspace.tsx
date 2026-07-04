@@ -85,7 +85,15 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setMeta(loadCanvasMeta(project.id));
+    const stored = loadCanvasMeta(project.id);
+    const serverNotes: Record<string, string> = {};
+    for (const node of project.nodes) {
+      if (node.note?.trim()) serverNotes[node.id] = node.note;
+    }
+    setMeta({
+      ...stored,
+      comments: { ...serverNotes, ...stored.comments },
+    });
     try {
       const raw = localStorage.getItem(sequenceKey(project.id));
       if (raw) setSequence(JSON.parse(raw));
@@ -119,6 +127,8 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           ? { x: node.posX, y: node.posY }
           : mindMapPosition(index, orderedNodes.length);
 
+      const comment = meta.comments[node.id]?.trim() ?? "";
+
       return {
         id: node.id,
         type: "canvasBlock",
@@ -132,7 +142,7 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
           borderColor: color.bg,
           bgColor: color.light,
           step: index + 1,
-          hasNote: Boolean(meta.comments[node.id]),
+          note: comment,
         } satisfies CanvasBlockNodeData,
       };
     });
@@ -260,12 +270,34 @@ export function CanvasWorkspace({ project }: { project: CompanyProject }) {
     persistMeta({ ...meta, colors: { ...meta.colors, [nodeId]: colorId } });
   };
 
-  const setComment = (nodeId: string, comment: string) => {
-    persistMeta({ ...meta, comments: { ...meta.comments, [nodeId]: comment } });
-  };
+  const setComment = useCallback(
+    (nodeId: string, comment: string) => {
+      setMeta((prev) => {
+        const next = {
+          ...prev,
+          comments: { ...prev.comments, [nodeId]: comment },
+        };
+        saveCanvasMeta(project.id, next);
+        return next;
+      });
+      setNodes((current) =>
+        current.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  note: comment.trim(),
+                },
+              }
+            : node
+        )
+      );
+    },
+    [project.id, setNodes]
+  );
 
   const saveCommentToServer = async (nodeId: string, comment: string) => {
-    if (!comment.trim()) return;
     await fetch(`/api/nodes/${nodeId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
