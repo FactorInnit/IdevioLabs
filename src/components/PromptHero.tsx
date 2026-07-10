@@ -25,7 +25,6 @@ import { AITrainingCredibility } from "@/components/landing/AITrainingCredibilit
 import { Testimonials } from "@/components/landing/Testimonials";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { CommunitySection } from "@/components/landing/CommunitySection";
-import { FounderOSDemo } from "@/components/landing/FounderOSDemo";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { PricingSection } from "@/components/PricingSection";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -181,12 +180,6 @@ export function PromptHero() {
                   <ArrowRight className="h-4 w-4" />
                 </a>
                 <Link
-                  href="#demo"
-                  className="inline-flex items-center gap-2 rounded-xl border border-navy-200 bg-white px-6 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400"
-                >
-                  Watch demo
-                </Link>
-                <Link
                   href="/about"
                   className="inline-flex items-center gap-2 rounded-xl border border-navy-200 bg-white px-6 py-3.5 text-sm font-semibold text-navy-900 transition hover:border-navy-400"
                 >
@@ -259,7 +252,6 @@ export function PromptHero() {
       </div>
 
       <StatsBar />
-      <FounderOSDemo />
       <AITrainingCredibility />
       <CredibilityStrip />
       <TrustedBy />
