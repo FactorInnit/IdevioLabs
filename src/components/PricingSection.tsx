@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Check, Minus, Sparkles, Star } from "lucide-react";
 import { PLANS, PLAN_COMPARISON, formatPlanPrice, type PlanId } from "@/lib/plans";
 import { usePlan } from "@/lib/usePlan";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
+import { BetaUpgradeInterestModal } from "@/components/BetaUpgradeInterestModal";
 import { cn } from "@/lib/utils";
 
 interface PricingSectionProps {
@@ -20,13 +22,24 @@ export function PricingSection({
   const { planId, checkoutPlan } = usePlan();
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [error, setError] = useState("");
+  const [interestPlan, setInterestPlan] = useState<PlanId | null>(null);
+  const betaPaymentsDisabled = isBetaPaymentsDisabled();
 
   const handleSelect = async (id: PlanId) => {
     setError("");
     if (id === planId) return;
 
     if (id === "free") {
-      setError("Contact support to downgrade. Paid plans are managed via Stripe.");
+      setError(
+        betaPaymentsDisabled
+          ? "You're on the Free beta plan."
+          : "Contact support to downgrade. Paid plans are managed via Stripe."
+      );
+      return;
+    }
+
+    if (betaPaymentsDisabled) {
+      setInterestPlan(id);
       return;
     }
 
@@ -43,6 +56,14 @@ export function PricingSection({
 
   return (
     <div>
+      {betaPaymentsDisabled && (
+        <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm leading-relaxed text-amber-950">
+          Pro and Ultra are in development during beta — no paid upgrades yet. Use Free to
+          build your first startup, or leave your details if you want early access when plans
+          launch.
+        </p>
+      )}
+
       <div
         className={cn(
           "grid gap-6",
@@ -52,6 +73,7 @@ export function PricingSection({
         {PLANS.filter((p) => (compact ? p.id !== "free" : true)).map((plan) => {
           const isCurrent = plan.id === planId;
           const isLoading = loadingPlan === plan.id;
+          const isPaidPlan = plan.id === "pro" || plan.id === "ultra";
 
           return (
             <div
@@ -60,7 +82,8 @@ export function PricingSection({
                 "relative flex flex-col rounded-2xl border p-6 transition",
                 plan.highlight
                   ? "border-navy-700 bg-navy-950 text-white shadow-2xl shadow-navy-900/30"
-                  : "border-slate-200 bg-white text-navy-950"
+                  : "border-slate-200 bg-white text-navy-950",
+                betaPaymentsDisabled && isPaidPlan && "opacity-95"
               )}
             >
               {plan.badge && (
@@ -77,7 +100,7 @@ export function PricingSection({
                   ) : (
                     <Sparkles className="h-3 w-3" />
                   )}
-                  {plan.badge}
+                  {betaPaymentsDisabled && isPaidPlan ? "Coming soon" : plan.badge}
                 </span>
               )}
 
@@ -156,7 +179,8 @@ export function PricingSection({
                     : plan.highlight
                       ? "bg-white text-navy-900 hover:bg-white/90"
                       : "bg-navy-900 text-white hover:bg-navy-800",
-                  isLoading && "opacity-70"
+                  isLoading && "opacity-70",
+                  betaPaymentsDisabled && isPaidPlan && !isCurrent && "bg-amber-500 text-navy-950 hover:bg-amber-400"
                 )}
               >
                 {isCurrent
@@ -164,8 +188,10 @@ export function PricingSection({
                   : isLoading
                     ? "Redirecting to checkout…"
                     : plan.id === "free"
-                      ? "Included"
-                      : plan.cta}
+                      ? "Included in beta"
+                      : betaPaymentsDisabled
+                        ? "Register interest"
+                        : plan.cta}
               </button>
             </div>
           );
@@ -202,9 +228,16 @@ export function PricingSection({
       )}
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Pro and Ultra upgrades are processed securely via Stripe. Your plan updates
-        automatically after payment.
+        {betaPaymentsDisabled
+          ? "Paid plans are not available during public beta. Pro and Ultra features are still in development."
+          : "Pro and Ultra upgrades are processed securely via Stripe. Your plan updates automatically after payment."}
       </p>
+
+      <BetaUpgradeInterestModal
+        open={interestPlan !== null}
+        onClose={() => setInterestPlan(null)}
+        planId={interestPlan ?? "pro"}
+      />
     </div>
   );
 }

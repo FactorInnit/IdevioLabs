@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import type { PlanId } from "./plans";
+import { isBetaPaymentsDisabled } from "./beta";
 
 export interface AuthUser {
   id: string;
@@ -87,6 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (id: PlanId) => {
       if (id === "free") {
         return { error: "You are already on the free plan." };
+      }
+
+      if (isBetaPaymentsDisabled()) {
+        return { error: "Paid plans are not available during beta." };
       }
 
       if (!user) {

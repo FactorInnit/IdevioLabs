@@ -31,6 +31,12 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { usePlan } from "@/lib/usePlan";
 import { useAuth } from "@/lib/auth-context";
 import { ASSISTANT_NAME, PRODUCT_NAME } from "@/lib/brand";
+import { BETA_DISCLAIMER, BETA_JOIN_STEPS, BETA_LABEL } from "@/lib/beta";
+
+function joinBetaHref(user: { id: string } | null): string {
+  if (user) return "#get-started";
+  return `/signup?next=${encodeURIComponent("/#get-started")}`;
+}
 
 const FEATURES = [
   {
@@ -95,7 +101,7 @@ export function PromptHero() {
     }
 
     if (!user) {
-      router.push(`/login?next=${encodeURIComponent("/#get-started")}`);
+      router.push(`/signup?next=${encodeURIComponent("/#get-started")}`);
       return;
     }
 
@@ -129,7 +135,7 @@ export function PromptHero() {
           return;
         }
         if (data.code === "auth_required") {
-          router.push(`/login?next=${encodeURIComponent("/#get-started")}`);
+          router.push(`/signup?next=${encodeURIComponent("/#get-started")}`);
           return;
         }
         throw new Error(data.error || "Something went wrong.");
@@ -154,6 +160,11 @@ export function PromptHero() {
         <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-12 lg:pb-20 lg:pt-16">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
             <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/80 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-950 shadow-sm">
+                <Sparkles className="h-4 w-4 text-amber-700" />
+                {BETA_LABEL} is live — not the final app
+              </div>
+
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-navy-200/80 bg-white/90 px-4 py-2 text-sm font-medium text-navy-800 shadow-sm backdrop-blur">
                 <Sparkles className="h-4 w-4 text-navy-600" />
                 The operating system for startups
@@ -171,12 +182,16 @@ export function PromptHero() {
                 10,000+ founders and YC-grade playbooks for advice you can actually trust.
               </p>
 
+              <p className="mt-4 max-w-lg rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-950">
+                {BETA_DISCLAIMER} {BETA_JOIN_STEPS}
+              </p>
+
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
-                  href="#get-started"
+                  href={joinBetaHref(user)}
                   className="inline-flex items-center gap-2 rounded-xl bg-navy-900 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-navy-900/25 transition hover:bg-navy-800"
                 >
-                  Launch your Founder OS
+                  Join beta
                   <ArrowRight className="h-4 w-4" />
                 </a>
                 <Link
@@ -212,7 +227,7 @@ export function PromptHero() {
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-navy-800">
                   <Shield className="h-3.5 w-3.5 text-navy-600" />
-                  Free to start · No credit card
+                  Free during beta · No credit card
                 </span>
               </div>
             </div>
@@ -273,15 +288,16 @@ export function PromptHero() {
 
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-navy-300">
-              Get started free
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+              {BETA_LABEL}
             </p>
             <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Build your roadmap in under 2 minutes
+              Create your account, then your first startup
             </h2>
             <p className="mt-3 text-white/70">
-              Describe your idea and get a complete 8-block business plan with ordered tasks and
-              tools — powered by AI trained on 10,000+ founders and YC-grade startup playbooks.
+              Sign up free, describe your idea, and get a complete 8-block business plan with
+              ordered tasks and tools — powered by AI trained on 10,000+ founders and YC-grade
+              startup playbooks.
             </p>
           </div>
 
@@ -348,9 +364,14 @@ export function PromptHero() {
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Building roadmap...
                       </>
+                    ) : user ? (
+                      <>
+                        Create my startup
+                        <ArrowRight className="h-4 w-4" />
+                      </>
                     ) : (
                       <>
-                        Generate my roadmap
+                        Join beta — create account
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -363,7 +384,7 @@ export function PromptHero() {
               )}
 
               <p className="mt-4 text-center text-xs text-white/50">
-                Free forever for your first roadmap · No credit card · Cancel anytime
+                Free during public beta · No credit card · Pro &amp; Ultra coming later
               </p>
             </div>
           </form>
@@ -417,10 +438,10 @@ export function PromptHero() {
             </ul>
 
             <a
-              href="#get-started"
+              href={joinBetaHref(user)}
               className="mt-8 inline-flex items-center gap-2 rounded-xl bg-navy-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-navy-800"
             >
-              Try it free
+              Join beta
               <ArrowRight className="h-4 w-4" />
             </a>
           </div>
@@ -468,13 +489,14 @@ export function PromptHero() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-navy-500">
-              Pricing
+              Pricing · {BETA_LABEL}
             </p>
             <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-navy-950 sm:text-4xl">
-              Start free. Upgrade when you&apos;re ready.
+              Free during beta. Paid plans coming soon.
             </h2>
             <p className="mt-3 text-slate-600">
-              One free startup to prove the idea. Go Pro to build more and bring your team.
+              One free startup to test the Founder OS. Pro and Ultra are in development — register
+              interest if you want early access when they launch.
             </p>
           </div>
 
@@ -489,7 +511,7 @@ export function PromptHero() {
       <UpgradeModal
         open={showUpgrade}
         title="You've used your free startup"
-        description="The Free plan includes 1 startup roadmap. Upgrade to build more."
+        description="During beta, each account includes one startup on the Free plan. Pro plans (more startups + team features) are still in development."
         onClose={() => setShowUpgrade(false)}
         onUpgraded={() => setShowUpgrade(false)}
       />

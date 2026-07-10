@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
 import { getStripe } from "@/lib/stripe";
 import {
   applyCheckoutSessionToUser,
@@ -9,6 +10,13 @@ import {
 } from "@/lib/stripe-plan-sync";
 
 export async function POST(request: Request) {
+  if (isBetaPaymentsDisabled()) {
+    return NextResponse.json(
+      { error: "Paid plans are not available during public beta." },
+      { status: 403 }
+    );
+  }
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });

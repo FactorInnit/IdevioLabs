@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
 import { getStripe, planFromStripePrice } from "@/lib/stripe";
 import { applyCheckoutSessionToUser } from "@/lib/stripe-plan-sync";
 import type { PlanId } from "@/lib/plans";
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
         if (subscription.status === "active" || subscription.status === "trialing") {
           const priceId = subscription.items.data[0]?.price.id;
           const planId = priceId ? planFromStripePrice(priceId) : null;
-          if (planId) {
+          if (planId && !isBetaPaymentsDisabled()) {
             await prisma.user.update({
               where: { id: user.id },
               data: {

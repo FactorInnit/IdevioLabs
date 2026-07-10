@@ -193,3 +193,13 @@ model WeeklyReview {
 
   @@unique([projectId, weekStart])
 }
+
+model UpgradeInterestLead {
+  id        String   @id @default(cuid())
+  userId    String?
+  planId    String
+  name      String
+  phone     String
+  email     String
+  createdAt DateTime @default(now())
+}

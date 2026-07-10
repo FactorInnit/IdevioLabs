@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { X, Lock } from "lucide-react";
 import { PricingSection } from "./PricingSection";
 import type { PlanId } from "@/lib/plans";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -15,11 +16,13 @@ interface UpgradeModalProps {
 
 export function UpgradeModal({
   open,
-  title = "Upgrade to unlock more",
-  description = "You've reached the limit of the Free plan. Choose a plan to keep building.",
+  title,
+  description,
   onClose,
   onUpgraded,
 }: UpgradeModalProps) {
+  const betaPaymentsDisabled = isBetaPaymentsDisabled();
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -34,6 +37,17 @@ export function UpgradeModal({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const modalTitle =
+    title ??
+    (betaPaymentsDisabled
+      ? "You've reached the Free beta limit"
+      : "Upgrade to unlock more");
+  const modalDescription =
+    description ??
+    (betaPaymentsDisabled
+      ? "During beta, each account includes one startup on the Free plan. Pro and Ultra (more startups and team features) are still in development."
+      : "You've reached the limit of the Free plan. Choose a plan to keep building.");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -54,18 +68,20 @@ export function UpgradeModal({
               <Lock className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
-              <p className="text-sm text-white/60">{description}</p>
+              <h2 className="text-lg font-semibold text-white">{modalTitle}</h2>
+              <p className="text-sm text-white/60">{modalDescription}</p>
             </div>
           </div>
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto p-6">
           <PricingSection compact showComparison={false} onSelected={onUpgraded} />
-          <p className="mt-4 text-center text-xs text-slate-400">
-            You&apos;ll be redirected to Stripe to complete payment. Your plan
-            upgrades only after payment succeeds.
-          </p>
+          {!betaPaymentsDisabled && (
+            <p className="mt-4 text-center text-xs text-slate-400">
+              You&apos;ll be redirected to Stripe to complete payment. Your plan
+              upgrades only after payment succeeds.
+            </p>
+          )}
         </div>
       </div>
     </div>

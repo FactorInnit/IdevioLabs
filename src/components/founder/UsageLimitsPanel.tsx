@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Bot, Loader2, Shield, Sparkles } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { AnimatedProgressBar } from "./AnimatedProgressBar";
+import { BetaUpgradeLink } from "@/components/BetaUpgradeLink";
 import {
   FREE_AI_MESSAGES_PER_MONTH,
   FREE_VALIDATOR_RUNS_PER_MONTH,
@@ -123,12 +123,9 @@ export function UsageLimitsPanel({
           </span>
         </p>
         {atLimit && (
-          <Link
-            href="/pricing"
-            className="mt-2 inline-flex text-[11px] font-semibold text-navy-700 hover:text-navy-900"
-          >
-            Upgrade for unlimited →
-          </Link>
+          <BetaUpgradeLink className="mt-2 inline-flex text-[11px] font-semibold text-navy-700 hover:text-navy-900">
+            Register interest in Pro →
+          </BetaUpgradeLink>
         )}
       </div>
     );
@@ -143,13 +140,10 @@ export function UsageLimitsPanel({
           </p>
           <h3 className="mt-1 font-display font-bold text-navy-900">Monthly usage</h3>
         </div>
-        <Link
-          href="/pricing"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-navy-800"
-        >
+        <BetaUpgradeLink className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-navy-800">
           <Sparkles className="h-3.5 w-3.5" />
-          Upgrade to Pro
-        </Link>
+          Register interest in Pro
+        </BetaUpgradeLink>
       </div>
 
       <div className="mt-5 space-y-4">

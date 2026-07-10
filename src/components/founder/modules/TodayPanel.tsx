@@ -14,6 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { BetaUpgradeLink } from "@/components/BetaUpgradeLink";
 import { StreakBadge } from "../StreakBadge";
 import { AnimatedProgressBar } from "../AnimatedProgressBar";
 import { companyModuleHref } from "@/lib/founder-nav";
@@ -160,13 +161,10 @@ export function TodayPanel({ project }: { project: CompanyProject }) {
               <p className="mt-3 text-sm text-slate-500">
                 Daily habits & planner are a Pro feature.
               </p>
-              <Link
-                href="/pricing"
-                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
-              >
-                Upgrade to track habits
+              <BetaUpgradeLink className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900">
+                Register interest in Pro
                 <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+              </BetaUpgradeLink>
             </>
           ) : habitsLoading ? (
             <Loader2 className="mt-4 h-5 w-5 animate-spin text-navy-600" />

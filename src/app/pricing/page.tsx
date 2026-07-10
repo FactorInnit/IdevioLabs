@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { PricingSection } from "@/components/PricingSection";
+import { BETA_DISCLAIMER, BETA_LABEL } from "@/lib/beta";
 import {
   FREE_AI_MESSAGES_PER_MONTH,
   FREE_VALIDATOR_RUNS_PER_MONTH,
@@ -45,16 +46,19 @@ export default function PricingPage() {
           <div className="pointer-events-none absolute inset-0 grid-texture opacity-30" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(90,122,184,0.25),_transparent_60%)]" />
           <div className="relative mx-auto max-w-3xl px-6 text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/70">
-              Simple, founder-friendly pricing
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-amber-200">
+              {BETA_LABEL} · Paid plans in development
             </span>
             <h1 className="font-display mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl">
               Plans that grow{" "}
               <span className="text-gradient-light">with your startup</span>
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-white/60">
-              Start free with one roadmap. Upgrade to Pro for habits, competitors, CEO review,
-              investor exports, and unlimited AI — or go Ultra to scale without limits.
+              Start free with one roadmap during beta. Pro and Ultra unlock habits, competitors,
+              CEO review, and more — register interest while we finish building them.
+            </p>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/45">
+              {BETA_DISCLAIMER}
             </p>
           </div>
         </section>
@@ -63,7 +67,7 @@ export default function PricingPage() {
           <div className="mx-auto max-w-6xl px-6">
             <PricingSection />
             <p className="mt-8 text-center text-sm leading-relaxed text-slate-500">
-              Paid plans renew monthly until canceled. See our{" "}
+              Pro and Ultra are not available during public beta. See our{" "}
               <Link href="/terms" className="font-semibold text-navy-700 hover:underline">
                 Terms
               </Link>
@@ -75,7 +79,7 @@ export default function PricingPage() {
               <Link href="/privacy" className="font-semibold text-navy-700 hover:underline">
                 Privacy Policy
               </Link>
-              . Payments are processed securely by Stripe.
+              .
             </p>
           </div>
         </section>
@@ -99,16 +103,16 @@ export default function PricingPage() {
 
             <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl bg-navy-950 px-8 py-10 text-center">
               <h3 className="font-display text-2xl font-bold text-white">
-                Ready to build your roadmap?
+                Ready to join the beta?
               </h3>
               <p className="max-w-md text-sm text-white/60">
-                Start free — upgrade when habits, competitors, and exports become part of your weekly rhythm.
+                Create a free account and build your first startup roadmap — no credit card required.
               </p>
               <Link
-                href="/#get-started"
+                href={`/signup?next=${encodeURIComponent("/#get-started")}`}
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-navy-900 transition hover:bg-white/90"
               >
-                Start free
+                Join beta
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

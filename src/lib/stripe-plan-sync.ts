@@ -1,4 +1,5 @@
 import type { PlanId } from "@/lib/plans";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
 import { prisma } from "@/lib/prisma";
 import { getUserProjectCount } from "@/lib/plan-limits";
 import { getPlan } from "@/lib/plans";
@@ -52,6 +53,10 @@ async function updateUserPlan(
   stripeCustomerId?: string | null,
   stripeSubscriptionId?: string | null
 ) {
+  if (isBetaPaymentsDisabled() && (planId === "pro" || planId === "ultra")) {
+    return prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  }
+
   return prisma.user.update({
     where: { id: userId },
     data: {
@@ -78,13 +83,14 @@ export async function applyCheckoutSessionToUser(session: CheckoutSession) {
   );
 
   const projectCount = await getUserProjectCount(user.id);
-  const plan = getPlan(planId);
+  const effectivePlanId = (user.plan as PlanId) || "free";
+  const plan = getPlan(effectivePlanId);
 
   return {
     id: user.id,
     email: user.email,
     name: user.name,
-    plan: planId,
+    plan: effectivePlanId,
     projectCount,
     maxStartups: plan.maxStartups,
     canCreateMore: projectCount < plan.maxStartups,

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { BETA_DISCLAIMER, BETA_LABEL } from "@/lib/beta";
 
 export function FinalCTA() {
+  const joinBetaHref = `/signup?next=${encodeURIComponent("/#get-started")}`;
+
   return (
     <section className="relative overflow-hidden bg-navy-950 py-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(90,122,184,0.15),_transparent_70%)]" />
@@ -11,21 +14,24 @@ export function FinalCTA() {
 
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         <Logo size="xl" className="mx-auto mb-6 shadow-2xl" />
-        <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-          Your startup deserves a real plan
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+          {BETA_LABEL} is live
+        </p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          Join the beta and build your first startup
         </h2>
         <p className="mt-4 text-lg leading-relaxed text-white/60">
-          Join 12,400+ founders who turned vague ideas into actionable roadmaps.
-          Free to start — no credit card required.
+          Create a free account, describe your idea, and get an actionable roadmap in minutes.
+          {BETA_DISCLAIMER}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href="#get-started"
+          <Link
+            href={joinBetaHref}
             className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-navy-900 transition hover:bg-white/90"
           >
-            Build my roadmap
+            Join beta
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-white/5"
@@ -34,7 +40,7 @@ export function FinalCTA() {
           </Link>
         </div>
         <p className="mt-6 text-xs text-white/40">
-          Trusted by 940+ businesses · 4.9★ average rating · Setup in under 2 minutes
+          Free during beta · No credit card · Setup in under 2 minutes
         </p>
       </div>
     </section>

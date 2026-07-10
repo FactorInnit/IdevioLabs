@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { isBetaPaymentsDisabled } from "@/lib/beta";
 import { getPlan, type PlanId } from "@/lib/plans";
 import { getAppUrl, getStripe, getStripePriceId } from "@/lib/stripe";
 
 export async function POST(request: Request) {
+  if (isBetaPaymentsDisabled()) {
+    return NextResponse.json(
+      { error: "Paid plans are not available during public beta." },
+      { status: 403 }
+    );
+  }
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Sign in to upgrade your plan." }, { status: 401 });
